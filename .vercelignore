@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+CONTRIBUTING.md
+LICENSE
+
+# Development files
+.eslintcache
+tsconfig.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Yarn
+yarn-error.log
+.yarn-integrity
+
+# Mac
+.DS_Store
+
+# Docker
+Dockerfile
+docker-compose.yml
