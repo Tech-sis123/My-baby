@@ -1,48 +1,57 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { bootstrapAccount } from "@/lib/account"
 import { DoctorDashboardClient } from "./client"
 
 export default async function DoctorDashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
+  await bootstrapAccount(supabase, user)
 
-  // Verify doctor role
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, full_name")
     .eq("id", user.id)
-    .single()
+    .maybeSingle()
 
   if (profile?.role !== "doctor") redirect("/mother/home")
 
-  // All linked pregnancies
-  const { data: pregnancies } = await supabase
-    .from("pregnancies")
-    .select("*, profiles!pregnancies_mother_id_fkey(full_name)")
-    .eq("linked_doctor_id", user.id)
-    .eq("status", "active")
+  const [{ data: doctor }, { data: pregnancies }, { data: babyProfiles }] = await Promise.all([
+    supabase
+      .from("doctors")
+      .select("invite_code, specialty, clinic_name")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("pregnancies")
+      .select("*, profiles!pregnancies_mother_id_fkey(full_name)")
+      .eq("linked_doctor_id", user.id)
+      .eq("status", "active"),
+    supabase
+      .from("children")
+      .select("*, profiles!children_mother_id_fkey(full_name)")
+      .eq("linked_doctor_id", user.id)
+      .is("archived_at", null),
+  ])
 
-  // All linked children (not archived)
-  const { data: children } = await supabase
-    .from("children")
-    .select("*, profiles!children_mother_id_fkey(full_name)")
-    .eq("linked_doctor_id", user.id)
-    .is("archived_at", null)
-
-  // Collect all subject IDs
   const subjectIds = [
-    ...(pregnancies || []).map(p => p.id),
-    ...(children || []).map(c => c.id),
+    ...(pregnancies || []).map(pregnancy => pregnancy.id),
+    ...(babyProfiles || []).map(child => child.id),
   ]
 
-  // Active flags for all linked subjects
   let flags: Array<{
-    id: string; mother_id: string; subject_id: string; subject_type: string;
-    rule_id: string; severity: string; message: string; created_at: string
+    id: string
+    mother_id: string
+    subject_id: string
+    subject_type: string
+    rule_id: string
+    severity: string
+    message: string
+    created_at: string
   }> = []
 
-  let lastCheckins: Record<string, string> = {}
+  const lastCheckins: Record<string, string> = {}
 
   if (subjectIds.length > 0) {
     const [flagsRes, checkinsRes] = await Promise.all([
@@ -57,9 +66,10 @@ export default async function DoctorDashboardPage() {
         .in("subject_id", subjectIds)
         .order("created_at", { ascending: false }),
     ])
+
     flags = flagsRes.data || []
-    for (const c of checkinsRes.data || []) {
-      if (!lastCheckins[c.subject_id]) lastCheckins[c.subject_id] = c.created_at
+    for (const checkin of checkinsRes.data || []) {
+      if (!lastCheckins[checkin.subject_id]) lastCheckins[checkin.subject_id] = checkin.created_at
     }
   }
 
@@ -67,8 +77,11 @@ export default async function DoctorDashboardPage() {
     <DoctorDashboardClient
       doctorId={user.id}
       doctorName={profile?.full_name || "Doctor"}
+      specialty={doctor?.specialty || null}
+      clinicName={doctor?.clinic_name || null}
+      inviteCode={doctor?.invite_code || null}
       pregnancies={pregnancies || []}
-      children={children || []}
+      babyProfiles={babyProfiles || []}
       initialFlags={flags}
       initialLastCheckins={lastCheckins}
     />

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { formatStage, SEVERITY_COLORS } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { MedicalFooter } from "@/components/medical-footer"
 import { ScheduleCallbackForm } from "./callback-form"
@@ -47,7 +46,7 @@ export default async function DoctorPatientPage({
     .limit(30)
 
   const checkinIds = (checkins || []).map(c => c.id)
-  let flagsByCheckin: Record<string, Array<{ severity: string; message: string; rule_id: string }>> = {}
+  const flagsByCheckin: Record<string, Array<{ severity: string; message: string; rule_id: string }>> = {}
   if (checkinIds.length > 0) {
     const { data: allFlags } = await supabase
       .from("flags")
@@ -130,11 +129,11 @@ export default async function DoctorPatientPage({
 
                     {/* Key payload fields */}
                     <div className="text-xs text-[var(--muted-foreground)] space-y-0.5">
-                      {payload.feeling && <p>Feeling: <span className="font-medium capitalize">{String(payload.feeling).replace("_", " ")}</span></p>}
-                      {payload.mother_mood && <p>Mother mood: <span className="font-medium capitalize">{String(payload.mother_mood).replace("_", " ")}</span></p>}
+                      {payload.feeling != null && <p>Feeling: <span className="font-medium capitalize">{String(payload.feeling).replace("_", " ")}</span></p>}
+                      {payload.mother_mood != null && <p>Mother mood: <span className="font-medium capitalize">{String(payload.mother_mood).replace("_", " ")}</span></p>}
                       {payload.wet_diapers_24h !== undefined && <p>Wet diapers: <span className="font-medium">{String(payload.wet_diapers_24h)}</span></p>}
-                      {payload.bp_systolic && <p>BP: <span className="font-medium">{String(payload.bp_systolic)}/{String(payload.bp_diastolic || "?")} mmHg</span></p>}
-                      {payload.note && <p className="italic mt-1">"{String(payload.note)}"</p>}
+                      {payload.bp_systolic != null && <p>BP: <span className="font-medium">{String(payload.bp_systolic)}/{String(payload.bp_diastolic || "?")} mmHg</span></p>}
+                      {payload.note != null && <p className="italic mt-1">&ldquo;{String(payload.note)}&rdquo;</p>}
                     </div>
                   </CardContent>
                 </Card>

@@ -1,21 +1,25 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { bootstrapAccount } from "@/lib/account"
 import { MotherHomeClient } from "./client"
 
 export default async function MotherHomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
+  const account = await bootstrapAccount(supabase, user)
+  if (account.role === "doctor") redirect("/doctor/dashboard")
+  const archiveBefore = new Date()
+  archiveBefore.setDate(archiveBefore.getDate() - 730)
 
-  // Archive babies over 24 months lazily on page load
   await supabase
     .from("children")
     .update({ archived_at: new Date().toISOString() })
     .eq("mother_id", user.id)
     .is("archived_at", null)
-    .lt("birth_date", new Date(Date.now() - 730 * 86400000).toISOString().split("T")[0])
+    .lt("birth_date", archiveBefore.toISOString().split("T")[0])
 
-  const [{ data: pregnancies }, { data: children }, { data: appointments }, { data: flags }] =
+  const [{ data: pregnancies }, { data: babyProfiles }, { data: appointments }, { data: flags }, { data: profile }] =
     await Promise.all([
       supabase
         .from("pregnancies")
@@ -41,32 +45,37 @@ export default async function MotherHomePage() {
         .select("*")
         .eq("mother_id", user.id)
         .is("resolved_at", null),
+      supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle(),
     ])
 
-  // Get last check-in times per subject
   const subjectIds = [
-    ...(pregnancies || []).map(p => p.id),
-    ...(children || []).map(c => c.id),
+    ...(pregnancies || []).map(pregnancy => pregnancy.id),
+    ...(babyProfiles || []).map(child => child.id),
   ]
 
-  let lastCheckins: Record<string, string> = {}
+  const lastCheckins: Record<string, string> = {}
   if (subjectIds.length > 0) {
     const { data: checkins } = await supabase
       .from("checkins")
       .select("subject_id, created_at")
       .in("subject_id", subjectIds)
       .order("created_at", { ascending: false })
-    if (checkins) {
-      for (const c of checkins) {
-        if (!lastCheckins[c.subject_id]) lastCheckins[c.subject_id] = c.created_at
-      }
+
+    for (const checkin of checkins || []) {
+      if (!lastCheckins[checkin.subject_id]) lastCheckins[checkin.subject_id] = checkin.created_at
     }
   }
 
   return (
     <MotherHomeClient
+      profileName={profile?.full_name || "Mama"}
+      email={user.email || ""}
       pregnancies={pregnancies || []}
-      children={children || []}
+      babyProfiles={babyProfiles || []}
       appointments={appointments || []}
       flags={flags || []}
       lastCheckins={lastCheckins}

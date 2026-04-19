@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MedicalFooter } from "@/components/medical-footer"
-import { formatStage, getGestationalWeek } from "@/lib/utils"
+import { formatStage } from "@/lib/utils"
 import { ArrowLeft, Plus, Calendar } from "lucide-react"
 import type { Appointment } from "@/lib/supabase/types"
 
@@ -20,10 +20,10 @@ interface Props {
   motherId: string
   appointments: Appointment[]
   pregnancies: Pregnancy[]
-  children: Child[]
+  babyProfiles: Child[]
 }
 
-export function AppointmentsClient({ motherId, appointments, pregnancies, children }: Props) {
+export function AppointmentsClient({ motherId, appointments, pregnancies, babyProfiles }: Props) {
   const router = useRouter()
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState("")
@@ -61,7 +61,7 @@ export function AppointmentsClient({ motherId, appointments, pregnancies, childr
       const p = pregnancies.find(p => p.id === apt.subject_id)
       if (p) return `🤰 ${formatStage("pregnancy", { due_date: p.due_date })}`
     } else {
-      const c = children.find(c => c.id === apt.subject_id)
+      const c = babyProfiles.find(c => c.id === apt.subject_id)
       if (c) return `🍼 ${formatStage("child", { birth_date: c.birth_date, name: c.name })}`
     }
     return null
@@ -124,7 +124,7 @@ export function AppointmentsClient({ motherId, appointments, pregnancies, childr
                       🤰 {formatStage("pregnancy", { due_date: p.due_date })}
                     </option>
                   ))}
-                  {children.map(c => (
+                  {babyProfiles.map(c => (
                     <option key={c.id} value={`child:${c.id}`}>
                       🍼 {formatStage("child", { birth_date: c.birth_date, name: c.name })}
                     </option>

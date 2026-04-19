@@ -46,13 +46,6 @@ interface Mother {
   name: string
 }
 
-interface Doctor {
-  id: string
-  email: string
-  name: string
-  invite_code: string
-}
-
 interface Pregnancy {
   id: string
   mother_id: string
@@ -62,6 +55,11 @@ interface Child {
   id: string
   mother_id: string
   name: string
+}
+
+interface DuplicateLikeError {
+  message?: string
+  code?: string
 }
 
 function addDays(date: Date, days: number): Date {
@@ -80,7 +78,7 @@ async function seed() {
   const today = new Date()
 
   // Helper to check if error is a duplicate/conflict error
-  const isDuplicateError = (error: any) => {
+  const isDuplicateError = (error: DuplicateLikeError | null | undefined) => {
     if (!error) return false
     return error.message?.includes("already exists") || 
            error.code === "23505" ||  // Database duplicate key
@@ -350,7 +348,7 @@ async function seed() {
       motherId: string,
       subjectType: "pregnancy" | "child",
       subjectId: string,
-      checkInConfigs: Array<{ daysAgo: number; payload: Record<string, any>; note: string }>
+      checkInConfigs: Array<{ daysAgo: number; payload: Record<string, unknown>; note: string }>
     ) => {
       for (const config of checkInConfigs) {
         const createdAt = addDays(today, -config.daysAgo)

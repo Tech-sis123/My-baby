@@ -7,7 +7,7 @@ export default async function AppointmentsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const [{ data: appointments }, { data: pregnancies }, { data: children }] = await Promise.all([
+  const [{ data: appointments }, { data: pregnancies }, { data: babyProfiles }] = await Promise.all([
     supabase
       .from("appointments")
       .select("*")
@@ -30,7 +30,7 @@ export default async function AppointmentsPage() {
       motherId={user.id}
       appointments={appointments || []}
       pregnancies={pregnancies || []}
-      children={children || []}
+      babyProfiles={babyProfiles || []}
     />
   )
 }

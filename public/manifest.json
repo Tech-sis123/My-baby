@@ -1,0 +1,11 @@
+{
+  "name": "My Baby",
+  "short_name": "My Baby",
+  "description": "Maternal and child health tracking for mothers and doctors.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2b251f",
+  "theme_color": "#c98b58",
+  "lang": "en",
+  "icons": []
+}

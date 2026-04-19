@@ -4,20 +4,30 @@ import { NextResponse } from "next/server"
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
-const SYSTEM_PROMPT = `You are a friendly maternal health information assistant in the My Baby app, used by pregnant women and new mothers primarily in Nigeria. Answer general questions about pregnancy, breastfeeding, infant care, nutrition, and normal development. You are NOT a doctor. You must NEVER diagnose, recommend specific medications, or give advice on specific symptoms. If a user describes symptoms, redirect them to contact their doctor. If they describe anything urgent (bleeding, severe pain, baby not breathing, high fever), tell them to go to the nearest hospital immediately. Be warm, brief (under 150 words per response), and culturally aware of Nigerian context. Never pretend to be a human.`
+const MOTHER_SYSTEM_PROMPT = `You are a warm maternal and baby-care assistant in the My Baby app. Answer clearly about pregnancy, breastfeeding, infant care, nutrition, development, routines, and next-step monitoring. Keep responses brief, practical, and calm. If symptoms sound urgent, say they should contact their doctor or go to the nearest hospital. Do not pretend to be a human.`
+
+const DOCTOR_SYSTEM_PROMPT = `You are a concise maternal and child health copilot for doctors using the My Baby app. The user may ask about a patient scenario. Respond in a clinically useful structure: likely concern, immediate priorities, follow-up questions, and when to escalate. Be brief, evidence-aware, and transparent about uncertainty. Do not claim to replace clinical judgment.`
 
 export async function POST(req: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle()
+
   const { messages } = await req.json()
   if (!Array.isArray(messages)) return NextResponse.json({ error: "Invalid messages" }, { status: 400 })
+
+  const systemPrompt = profile?.role === "doctor" ? DOCTOR_SYSTEM_PROMPT : MOTHER_SYSTEM_PROMPT
 
   const stream = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
       ...messages.slice(-10),
     ],
     stream: true,

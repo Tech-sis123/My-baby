@@ -31,7 +31,9 @@ export default async function PreVisitBriefPage({
     : formatStage("child", { birth_date: (subject?.birth_date as string) || "", name: (subject?.name as string) || "Baby" })
 
   // Last 7 days of check-ins
-  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString()
+  const sevenDaysAgoDate = new Date()
+  sevenDaysAgoDate.setDate(sevenDaysAgoDate.getDate() - 7)
+  const sevenDaysAgo = sevenDaysAgoDate.toISOString()
   const { data: checkins } = await supabase
     .from("checkins")
     .select("*")
@@ -99,16 +101,16 @@ export default async function PreVisitBriefPage({
                     })}
                   </p>
                   <div className="text-sm space-y-1 text-gray-700">
-                    {payload.feeling && <p>Feeling: <strong className="capitalize">{String(payload.feeling).replace("_", " ")}</strong></p>}
-                    {payload.mother_mood && <p>Mood: <strong className="capitalize">{String(payload.mother_mood).replace("_", " ")}</strong></p>}
-                    {payload.feeding && <p>Feeding: <strong className="capitalize">{String(payload.feeding)}</strong></p>}
+                    {payload.feeling != null && <p>Feeling: <strong className="capitalize">{String(payload.feeling).replace("_", " ")}</strong></p>}
+                    {payload.mother_mood != null && <p>Mood: <strong className="capitalize">{String(payload.mother_mood).replace("_", " ")}</strong></p>}
+                    {payload.feeding != null && <p>Feeding: <strong className="capitalize">{String(payload.feeding)}</strong></p>}
                     {payload.wet_diapers_24h !== undefined && <p>Wet diapers (24h): <strong>{String(payload.wet_diapers_24h)}</strong></p>}
-                    {payload.bp_systolic && <p>BP: <strong>{String(payload.bp_systolic)}/{String(payload.bp_diastolic || "?")} mmHg</strong></p>}
-                    {payload.fever === true && <p>Fever: <strong>Yes {payload.temp ? `(${payload.temp}°C)` : ""}</strong></p>}
+                    {payload.bp_systolic != null && <p>BP: <strong>{String(payload.bp_systolic)}/{String(payload.bp_diastolic || "?")} mmHg</strong></p>}
+                    {payload.fever === true && <p>Fever: <strong>Yes {payload.temp != null ? `(${String(payload.temp)}°C)` : ""}</strong></p>}
                     {payload.bleeding === true && <p className="text-red-600 font-semibold">Bleeding: Yes</p>}
                     {payload.severe_headache === true && <p className="text-red-600 font-semibold">Severe headache: Yes</p>}
                     {payload.swelling === true && <p className="text-red-600 font-semibold">Swelling: Yes</p>}
-                    {payload.note && <p className="italic text-gray-500 mt-1">Note: "{String(payload.note)}"</p>}
+                    {payload.note != null && <p className="italic text-gray-500 mt-1">Note: &ldquo;{String(payload.note)}&rdquo;</p>}
                   </div>
                 </div>
               )

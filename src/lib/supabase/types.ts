@@ -11,8 +11,21 @@ export interface Database {
           phone: string | null
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["profiles"]["Row"], "created_at"> & { created_at?: string }
-        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>
+        Insert: {
+          id: string
+          role: "mother" | "doctor"
+          full_name?: string | null
+          phone?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          role?: "mother" | "doctor"
+          full_name?: string | null
+          phone?: string | null
+          created_at?: string
+        }
+        Relationships: []
       }
       doctors: {
         Row: {
@@ -21,8 +34,19 @@ export interface Database {
           specialty: string | null
           clinic_name: string | null
         }
-        Insert: Database["public"]["Tables"]["doctors"]["Row"]
-        Update: Partial<Database["public"]["Tables"]["doctors"]["Row"]>
+        Insert: {
+          user_id: string
+          invite_code: string
+          specialty?: string | null
+          clinic_name?: string | null
+        }
+        Update: {
+          user_id?: string
+          invite_code?: string
+          specialty?: string | null
+          clinic_name?: string | null
+        }
+        Relationships: []
       }
       pregnancies: {
         Row: {
@@ -34,8 +58,33 @@ export interface Database {
           linked_doctor_id: string | null
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["pregnancies"]["Row"], "id" | "created_at"> & { id?: string; created_at?: string }
-        Update: Partial<Database["public"]["Tables"]["pregnancies"]["Insert"]>
+        Insert: {
+          id?: string
+          mother_id: string
+          due_date: string
+          status?: "active" | "delivered" | "ended"
+          ended_at?: string | null
+          linked_doctor_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          mother_id?: string
+          due_date?: string
+          status?: "active" | "delivered" | "ended"
+          ended_at?: string | null
+          linked_doctor_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregnancies_mother_id_fkey"
+            columns: ["mother_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       children: {
         Row: {
@@ -48,8 +97,35 @@ export interface Database {
           archived_at: string | null
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["children"]["Row"], "id" | "created_at"> & { id?: string; created_at?: string }
-        Update: Partial<Database["public"]["Tables"]["children"]["Insert"]>
+        Insert: {
+          id?: string
+          mother_id: string
+          name: string
+          birth_date: string
+          gender?: string | null
+          linked_doctor_id?: string | null
+          archived_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          mother_id?: string
+          name?: string
+          birth_date?: string
+          gender?: string | null
+          linked_doctor_id?: string | null
+          archived_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_mother_id_fkey"
+            columns: ["mother_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       checkins: {
         Row: {
@@ -60,8 +136,23 @@ export interface Database {
           payload: Json
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["checkins"]["Row"], "id" | "created_at"> & { id?: string; created_at?: string }
-        Update: Partial<Database["public"]["Tables"]["checkins"]["Insert"]>
+        Insert: {
+          id?: string
+          mother_id: string
+          subject_type: "pregnancy" | "child"
+          subject_id: string
+          payload: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          mother_id?: string
+          subject_type?: "pregnancy" | "child"
+          subject_id?: string
+          payload?: Json
+          created_at?: string
+        }
+        Relationships: []
       }
       flags: {
         Row: {
@@ -76,8 +167,39 @@ export interface Database {
           resolved_at: string | null
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["flags"]["Row"], "id" | "created_at"> & { id?: string; created_at?: string }
-        Update: Partial<Database["public"]["Tables"]["flags"]["Insert"]>
+        Insert: {
+          id?: string
+          mother_id: string
+          checkin_id: string
+          subject_type: string
+          subject_id: string
+          rule_id: string
+          severity: "red" | "yellow" | "green"
+          message: string
+          resolved_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          mother_id?: string
+          checkin_id?: string
+          subject_type?: string
+          subject_id?: string
+          rule_id?: string
+          severity?: "red" | "yellow" | "green"
+          message?: string
+          resolved_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flags_checkin_id_fkey"
+            columns: ["checkin_id"]
+            isOneToOne: false
+            referencedRelation: "checkins"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       appointments: {
         Row: {
@@ -91,14 +213,38 @@ export interface Database {
           notes: string | null
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["appointments"]["Row"], "id" | "created_at"> & { id?: string; created_at?: string }
-        Update: Partial<Database["public"]["Tables"]["appointments"]["Insert"]>
+        Insert: {
+          id?: string
+          mother_id: string
+          doctor_id?: string | null
+          subject_type?: string | null
+          subject_id?: string | null
+          title: string
+          scheduled_at: string
+          notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          mother_id?: string
+          doctor_id?: string | null
+          subject_type?: string | null
+          subject_id?: string | null
+          title?: string
+          scheduled_at?: string
+          notes?: string | null
+          created_at?: string
+        }
+        Relationships: []
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }
 
-// Convenience row types
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"]
 export type Doctor = Database["public"]["Tables"]["doctors"]["Row"]
 export type Pregnancy = Database["public"]["Tables"]["pregnancies"]["Row"]
