@@ -4,10 +4,12 @@ import { AppointmentsClient } from "./client"
 
 export default async function AppointmentsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const [{ data: appointments }, { data: pregnancies }, { data: babyProfiles }] = await Promise.all([
+  const [{ data: appointments }, { data: pregnancies }, { data: babyProfiles }, { data: profile }] = await Promise.all([
     supabase
       .from("appointments")
       .select("*")
@@ -23,11 +25,17 @@ export default async function AppointmentsPage() {
       .select("id, name, birth_date")
       .eq("mother_id", user.id)
       .is("archived_at", null),
+    supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .maybeSingle(),
   ])
 
   return (
     <AppointmentsClient
       motherId={user.id}
+      profileName={profile?.full_name || "Mama"}
       appointments={appointments || []}
       pregnancies={pregnancies || []}
       babyProfiles={babyProfiles || []}
