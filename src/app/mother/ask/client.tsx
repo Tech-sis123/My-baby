@@ -31,9 +31,20 @@ interface AskAIClientProps {
   subtitle: string
   intro: string
   placeholder: string
+  contextSummary?: string | null
+  promptSuggestions?: string[]
 }
 
-export function AskAIClient({ role, homeHref, title, subtitle, intro, placeholder }: AskAIClientProps) {
+export function AskAIClient({
+  role,
+  homeHref,
+  title,
+  subtitle,
+  intro,
+  placeholder,
+  contextSummary,
+  promptSuggestions,
+}: AskAIClientProps) {
   const router = useRouter()
   const supabase = createClient()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -92,6 +103,7 @@ export function AskAIClient({ role, homeHref, title, subtitle, intro, placeholde
           badgeTone: "border-emerald-400/22 bg-emerald-500/8 text-emerald-100",
           panelIcon: <HeartPulse className="h-4 w-4" />,
         }
+  const prompts = promptSuggestions && promptSuggestions.length > 0 ? promptSuggestions : config.prompts
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -221,12 +233,21 @@ export function AskAIClient({ role, homeHref, title, subtitle, intro, placeholde
 
             <div className="border-t border-[var(--border)] p-6 xl:border-l xl:border-t-0">
               <div className="rounded-[1.7rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
+                {contextSummary ? (
+                  <div className="mb-4 rounded-[1.25rem] border border-[var(--border)] bg-[rgba(42,34,28,0.35)] p-4">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+                      <ClipboardList className="h-4 w-4" /> Active case context
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-white">{contextSummary}</p>
+                  </div>
+                ) : null}
+
                 <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
                   <Lightbulb className="h-4 w-4" /> {config.promptTitle}
                 </div>
 
                 <div className="mt-5 space-y-3">
-                  {config.prompts.map(prompt => (
+                  {prompts.map(prompt => (
                     <button
                       key={prompt}
                       type="button"

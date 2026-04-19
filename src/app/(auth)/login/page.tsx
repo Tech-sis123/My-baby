@@ -3,18 +3,12 @@ import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import type { AuthError, User } from "@supabase/supabase-js"
-import { bootstrapAccount } from "@/lib/account"
+import type { AuthError } from "@supabase/supabase-js"
+import { resolvePostAuthDestination } from "@/lib/account"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-
-type Role = "mother" | "doctor"
-
-function resolveRole(user: User): Role {
-  return user.user_metadata?.role === "doctor" ? "doctor" : "mother"
-}
 
 function getAuthErrorMessage(error: AuthError): string {
   const message = error.message.toLowerCase()
@@ -58,16 +52,16 @@ function LoginPageContent() {
 
     async function redirectIfAuthenticated() {
       const {
-        data: { session },
-      } = await supabase.auth.getSession()
+        data: { user },
+      } = await supabase.auth.getUser()
 
-      if (!session?.user || cancelled) return
+      if (cancelled) return
+      if (!user) return
 
-      const role = resolveRole(session.user)
-      void bootstrapAccount(supabase, session.user)
+      const destination = await resolvePostAuthDestination(supabase, user, nextPath)
       if (cancelled) return
 
-      hardRedirect(nextPath || (role === "doctor" ? "/doctor/dashboard" : "/mother/home"))
+      hardRedirect(destination)
     }
 
     redirectIfAuthenticated()
@@ -97,9 +91,7 @@ function LoginPageContent() {
       return
     }
 
-    const role = resolveRole(data.user)
-    void bootstrapAccount(supabase, data.user)
-    const destination = nextPath || (role === "doctor" ? "/doctor/dashboard" : "/mother/home")
+    const destination = await resolvePostAuthDestination(supabase, data.user, nextPath)
 
     hardRedirect(destination)
   }

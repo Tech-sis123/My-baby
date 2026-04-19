@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -49,13 +50,24 @@ function LinkDoctorInline({ subjectType, subjectId }: { subjectType: "pregnancy"
   const [code, setCode] = useState("")
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   async function linkDoctor() {
-    if (!code.trim()) return
+    if (!code.trim()) {
+      setError("Enter the referral code first.")
+      return
+    }
+
+    if (code.trim().length < 4) {
+      setError("Referral code looks too short.")
+      return
+    }
+
     setLoading(true)
     setError("")
+    setSuccess("")
     const supabase = createClient()
     const { data: doctor } = await supabase
       .from("doctors")
@@ -81,6 +93,7 @@ function LinkDoctorInline({ subjectType, subjectId }: { subjectType: "pregnancy"
       return
     }
 
+    setSuccess("Doctor linked successfully.")
     router.refresh()
   }
 
@@ -118,6 +131,7 @@ function LinkDoctorInline({ subjectType, subjectId }: { subjectType: "pregnancy"
         </button>
       </div>
       {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
+      {success && <p className="mt-2 text-xs text-emerald-300">{success}</p>}
     </div>
   )
 }
@@ -131,7 +145,7 @@ function SectionCard({
   title: string
   subtitle: string
   accent: string
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5 shadow-[0_22px_54px_rgba(0,0,0,0.16)]">
@@ -182,7 +196,10 @@ export function MotherHomeClient({
 
   const redFlags = flags.filter(flag => flag.severity === "red").length
   const yellowFlags = flags.filter(flag => flag.severity === "yellow").length
+  const totalProfiles = pregnancies.length + babyProfiles.length
   const linkedSubjects = [...pregnancies, ...babyProfiles].filter(subject => subject.linked_doctor_id).length
+  const firstCheckinPending = [...pregnancies, ...babyProfiles].filter(subject => !lastCheckins[subject.id]).length
+  const pendingLinkage = totalProfiles - linkedSubjects
   const hasPregnancy = pregnancies.length > 0
   const hasBaby = babyProfiles.length > 0
   const mode = hasPregnancy && hasBaby ? "Dual care mode" : hasPregnancy ? "Pregnancy mode" : hasBaby ? "Baby care mode" : "Start your care journey"
@@ -241,10 +258,10 @@ export function MotherHomeClient({
                   <p className="mt-4 text-xs uppercase tracking-[0.24em] text-[var(--muted-foreground)]">{email}</p>
                 )}
 
-                <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                <div className="mt-8 grid gap-3 sm:grid-cols-4">
                   <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Care profiles</p>
-                    <p className="mt-3 text-3xl font-semibold text-white">{pregnancies.length + babyProfiles.length}</p>
+                    <p className="mt-3 text-3xl font-semibold text-white">{totalProfiles}</p>
                   </div>
                   <div className="rounded-[1.4rem] border border-red-400/20 bg-red-500/8 p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-red-200">Needs attention</p>
@@ -253,6 +270,10 @@ export function MotherHomeClient({
                   <div className="rounded-[1.4rem] border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.1)] p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-[var(--foreground)]">Linked to doctor</p>
                     <p className="mt-3 text-3xl font-semibold text-white">{linkedSubjects}</p>
+                  </div>
+                  <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">First check-ins due</p>
+                    <p className="mt-3 text-3xl font-semibold text-white">{firstCheckinPending}</p>
                   </div>
                 </div>
               </div>
@@ -295,6 +316,32 @@ export function MotherHomeClient({
             </SectionCard>
           )}
 
+          {pregnancies.length > 0 && babyProfiles.length === 0 && (
+            <SectionCard title="Need baby care later?" subtitle="Optional next step" accent="text-[var(--primary)]">
+              <p className="mb-5 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
+                If you have already delivered, add the baby profile here so baby tips, baby check-ins, and baby appointments stay separate from pregnancy tracking.
+              </p>
+              <Link href="/mother/onboarding?add=baby">
+                <Button variant="outline" className="justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
+                  Add baby profile <Plus className="h-4 w-4" />
+                </Button>
+              </Link>
+            </SectionCard>
+          )}
+
+          {babyProfiles.length > 0 && pregnancies.length === 0 && (
+            <SectionCard title="Need pregnancy tracking too?" subtitle="Optional next step" accent="text-[var(--primary)]">
+              <p className="mb-5 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
+                If you are also pregnant, add that journey separately so pregnancy prompts and baby prompts do not get mixed together.
+              </p>
+              <Link href="/mother/onboarding?add=pregnancy">
+                <Button variant="outline" className="justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
+                  Add pregnancy profile <Plus className="h-4 w-4" />
+                </Button>
+              </Link>
+            </SectionCard>
+          )}
+
           {pregnancies.length > 0 && (
             <SectionCard title="Pregnancy focus" subtitle="Mother health" accent="text-[var(--primary)]">
               <div className="grid gap-4 xl:grid-cols-2">
@@ -318,6 +365,11 @@ export function MotherHomeClient({
                               </span>
                               <span className="text-xl font-semibold text-white">{stage}</span>
                               {flag && <span className={`h-2.5 w-2.5 rounded-full ${SEVERITY_DOT[flag]}`} />}
+                              {pregnancy.linked_doctor_id ? (
+                                <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-100">
+                                  Doctor linked
+                                </span>
+                              ) : null}
                             </div>
                             <p className="mt-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
                               {last ? `Last check-in ${timeAgo(last)}` : "No check-ins yet"}
@@ -348,7 +400,9 @@ export function MotherHomeClient({
                           <div className="rounded-[1.3rem] border border-[var(--border)] bg-[rgba(255,248,239,0.08)] p-4">
                             <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Suggested next step</p>
                             <p className="mt-2 text-sm leading-6 text-white">
-                              Keep pregnancy notes updated before your next visit so the AI brief stays relevant to this stage.
+                              {last
+                                ? "Keep pregnancy notes updated before your next visit so the AI brief stays relevant to this stage."
+                                : "Start the first pregnancy check-in so this track can begin showing real alerts, summaries, and visit context."}
                             </p>
                           </div>
                         </div>
@@ -411,6 +465,11 @@ export function MotherHomeClient({
                               </span>
                               <span className="text-xl font-semibold text-white">{stage}</span>
                               {flag && <span className={`h-2.5 w-2.5 rounded-full ${SEVERITY_DOT[flag]}`} />}
+                              {child.linked_doctor_id ? (
+                                <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-100">
+                                  Doctor linked
+                                </span>
+                              ) : null}
                             </div>
                             <p className="mt-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
                               {last ? `Last check-in ${timeAgo(last)}` : "No check-ins yet"}
@@ -441,7 +500,9 @@ export function MotherHomeClient({
                           <div className="rounded-[1.3rem] border border-[var(--border)] bg-[rgba(255,248,239,0.08)] p-4">
                             <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Care context</p>
                             <p className="mt-2 text-sm leading-6 text-white">
-                              Baby check-ins, tips, and AI prompts should stay scoped to this child instead of mixing with pregnancy content.
+                              {last
+                                ? "Baby check-ins, tips, and AI prompts should stay scoped to this child instead of mixing with pregnancy content."
+                                : "Start the first baby check-in so feeding, diapers, breathing, and visit summaries begin showing real context."}
                             </p>
                           </div>
                         </div>
@@ -499,6 +560,13 @@ export function MotherHomeClient({
                 <p className="mt-2 text-3xl font-semibold text-white">{linkedSubjects}</p>
                 <p className="mt-2 text-sm text-[var(--muted-foreground)]">Profiles currently linked to a doctor referral code.</p>
               </div>
+              {pendingLinkage > 0 ? (
+                <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Still unlinked</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{pendingLinkage}</p>
+                  <p className="mt-2 text-sm text-[var(--muted-foreground)]">Care tracks that can still be connected to a doctor code.</p>
+                </div>
+              ) : null}
             </div>
           </section>
 
@@ -540,6 +608,16 @@ export function MotherHomeClient({
           </section>
 
           <section className="rounded-[1.8rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5">
+            {totalProfiles > 0 && (firstCheckinPending > 0 || appointments.length === 0) ? (
+              <div className="mb-5 rounded-[1.4rem] border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.08)] p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-[var(--foreground)]">Next best step</p>
+                <p className="mt-2 text-sm leading-6 text-white">
+                  {firstCheckinPending > 0
+                    ? `${firstCheckinPending} care track${firstCheckinPending > 1 ? "s are" : " is"} still waiting for a first check-in.`
+                    : "Your next useful action is to schedule the next appointment so the dashboard has a clear follow-up plan."}
+                </p>
+              </div>
+            ) : null}
             <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
               <BellRing className="h-4 w-4" /> Check-ins and support
             </div>

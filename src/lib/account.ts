@@ -23,6 +23,13 @@ export function buildDefaultInviteCode(fullName: string | null | undefined, user
   return normalizeInviteCode(`${base}-${suffix}`)
 }
 
+export function sanitizeNextPath(nextPath: string | null | undefined): string | null {
+  if (!nextPath) return null
+  if (!nextPath.startsWith("/")) return null
+  if (nextPath.startsWith("//")) return null
+  return nextPath
+}
+
 export async function bootstrapAccount(supabase: AppSupabaseClient, user: User) {
   const metadata = (user.user_metadata || {}) as Record<string, unknown>
   const role: Role = metadata.role === "doctor" ? "doctor" : "mother"
@@ -77,4 +84,38 @@ export async function bootstrapAccount(supabase: AppSupabaseClient, user: User) 
   )
 
   return { role: "doctor" as const, inviteCode }
+}
+
+export async function resolvePostAuthDestination(
+  supabase: AppSupabaseClient,
+  user: User,
+  nextPath?: string | null
+) {
+  const safeNextPath = sanitizeNextPath(nextPath)
+  if (safeNextPath) return safeNextPath
+
+  const account = await bootstrapAccount(supabase, user)
+
+  if (account.role === "doctor") {
+    return "/doctor/dashboard"
+  }
+
+  const [{ data: pregnancy }, { data: child }] = await Promise.all([
+    supabase
+      .from("pregnancies")
+      .select("id")
+      .eq("mother_id", user.id)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("children")
+      .select("id")
+      .eq("mother_id", user.id)
+      .is("archived_at", null)
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  return pregnancy || child ? "/mother/home" : "/mother/onboarding"
 }

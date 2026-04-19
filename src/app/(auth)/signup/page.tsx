@@ -3,18 +3,12 @@ import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import type { AuthError, User } from "@supabase/supabase-js"
-import { bootstrapAccount } from "@/lib/account"
+import type { AuthError } from "@supabase/supabase-js"
+import { resolvePostAuthDestination, sanitizeNextPath } from "@/lib/account"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-
-type Role = "mother" | "doctor"
-
-function resolveRole(user: User): Role {
-  return user.user_metadata?.role === "doctor" ? "doctor" : "mother"
-}
 
 function getAuthErrorMessage(error: AuthError): string {
   const message = error.message.toLowerCase()
@@ -45,7 +39,7 @@ function getAuthErrorMessage(error: AuthError): string {
 function SignupPageContent() {
   const searchParams = useSearchParams()
   const role = (searchParams.get("role") || "mother") as "mother" | "doctor"
-  const nextPath = searchParams.get("next")
+  const nextPath = sanitizeNextPath(searchParams.get("next"))
 
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
@@ -65,16 +59,15 @@ function SignupPageContent() {
 
     async function redirectIfAuthenticated() {
       const {
-        data: { session },
-      } = await supabase.auth.getSession()
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (cancelled) return
+      if (!user) return
 
-      if (!session?.user || cancelled) return
-
-      const role = resolveRole(session.user)
-      void bootstrapAccount(supabase, session.user)
+      const destination = await resolvePostAuthDestination(supabase, user, nextPath)
       if (cancelled) return
 
-      hardRedirect(nextPath || (role === "doctor" ? "/doctor/dashboard" : "/mother/home"))
+      hardRedirect(destination)
     }
 
     redirectIfAuthenticated()
@@ -94,7 +87,7 @@ function SignupPageContent() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`,
         data: {
           role,
           full_name: fullName,
@@ -121,10 +114,7 @@ function SignupPageContent() {
       return
     }
 
-    void bootstrapAccount(supabase, data.user)
-    const resolvedRole = resolveRole(data.user)
-    const destination =
-      nextPath || (resolvedRole === "doctor" ? "/doctor/dashboard" : "/mother/onboarding")
+    const destination = await resolvePostAuthDestination(supabase, data.user, nextPath)
 
     hardRedirect(destination)
   }
