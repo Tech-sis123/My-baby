@@ -1,10 +1,12 @@
 "use client"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { buildDefaultInviteCode, normalizeInviteCode } from "@/lib/account"
-import { createClient } from "@/lib/supabase/client"
+import { CheckCircle2, Link2, LoaderCircle, RefreshCw, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { buildDefaultInviteCode, normalizeInviteCode } from "@/lib/account"
+import { createClient } from "@/lib/supabase/client"
 import { CopyCodeButton } from "./copy-button"
 
 interface Props {
@@ -23,8 +25,12 @@ export function ReferralCodeManager({ userId, displayName, currentCode, specialt
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const suggestedCode = buildDefaultInviteCode(displayName, userId)
+  const normalizedPreview = normalizeInviteCode(desiredCode || suggestedCode)
+
   async function saveCode(rawValue: string) {
     const normalized = normalizeInviteCode(rawValue)
+
     if (!normalized || normalized.length < 4) {
       setError("Use at least 4 letters or numbers for the referral code.")
       setSuccess("")
@@ -64,55 +70,132 @@ export function ReferralCodeManager({ userId, displayName, currentCode, specialt
     }
 
     setDesiredCode(normalized)
-    setSuccess("Referral code saved.")
+    setSuccess("Referral code saved. Mothers can use it immediately.")
     setLoading(false)
     router.refresh()
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-      <section className="rounded-[1.8rem] border border-[var(--border)] bg-[rgba(8,17,31,0.76)] p-6 backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.24em] text-[#9ae6de]">Current code</p>
-        <div className="mt-4 rounded-[1.5rem] border border-[rgba(125,211,252,0.18)] bg-[var(--surface-muted)] p-5 text-center">
-          <span className="text-4xl font-semibold tracking-[0.24em] text-white">{desiredCode}</span>
+    <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
+      <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
+        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+          <Link2 className="h-4 w-4" /> Current referral code
         </div>
-        <div className="mt-4">
-          <CopyCodeButton code={desiredCode} />
+
+        <div className="mt-5 rounded-[1.65rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(42,34,28,0.42)] p-5">
+          <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Active code</p>
+          <p className="mt-4 break-all text-4xl font-semibold tracking-[0.24em] text-white">{currentCode}</p>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
+            This is the exact value a mother enters to link herself, her pregnancy, or her baby-care track back to your dashboard.
+          </p>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Best use</p>
+              <p className="mt-2 text-sm leading-6 text-white">
+                Share it verbally, print it on intake slips, or send it in a simple message.
+              </p>
+            </div>
+
+            <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">What happens next</p>
+              <p className="mt-2 text-sm leading-6 text-white">
+                New check-ins from linked pregnancy and baby tracks start surfacing in your doctor workflow.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <CopyCodeButton code={currentCode} />
+          </div>
         </div>
       </section>
 
-      <section className="rounded-[1.8rem] border border-[var(--border)] bg-[rgba(8,17,31,0.76)] p-6 backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.24em] text-[#7dd3fc]">Generate your special referral code</p>
-        <h3 className="mt-2 text-2xl font-semibold text-white">Pick the name you want mothers to use</h3>
-        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-          Example: use your name or clinic name. We convert it into a clean referral code automatically.
+      <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
+        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+          <Sparkles className="h-4 w-4" /> Customize the code
+        </div>
+        <h3 className="mt-3 text-3xl font-semibold text-white">Pick something mothers will remember</h3>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
+          Use your surname, short clinic name, or a concise professional handle. The system normalizes it into a clean all-caps referral code.
         </p>
 
-        <div className="mt-5 space-y-3">
-          <div>
-            <label htmlFor="desiredCode" className="mb-2 block text-sm font-medium text-white">Referral code name</label>
-            <Input
-              id="desiredCode"
-              value={desiredCode}
-              onChange={e => setDesiredCode(e.target.value.toUpperCase())}
-              placeholder={buildDefaultInviteCode(displayName, userId)}
-              className="bg-[rgba(8,17,31,0.45)] uppercase tracking-[0.2em] text-white"
-            />
+        <div className="mt-6 rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
+          <label htmlFor="desiredCode" className="block text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+            Referral code input
+          </label>
+          <Input
+            id="desiredCode"
+            value={desiredCode}
+            onChange={event => setDesiredCode(event.target.value.toUpperCase())}
+            placeholder={suggestedCode}
+            className="mt-3 uppercase tracking-[0.24em]"
+          />
+
+          <div className="mt-4 rounded-[1.2rem] border border-[var(--border)] bg-[rgba(42,34,28,0.35)] p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Live preview</p>
+            <p className="mt-2 break-all text-2xl font-semibold tracking-[0.18em] text-white">{normalizedPreview}</p>
           </div>
-          {error && <p className="text-sm text-red-300">{error}</p>}
-          {success && <p className="text-sm text-emerald-300">{success}</p>}
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setDesiredCode(suggestedCode)}
+              className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
+            >
+              Suggested: {suggestedCode}
+            </button>
+            {clinicName ? (
+              <button
+                type="button"
+                onClick={() => setDesiredCode(clinicName)}
+                className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
+              >
+                Clinic: {normalizeInviteCode(clinicName)}
+              </button>
+            ) : null}
+            {specialty ? (
+              <button
+                type="button"
+                onClick={() => setDesiredCode(`${displayName}-${specialty}`)}
+                className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
+              >
+                Name + specialty
+              </button>
+            ) : null}
+          </div>
         </div>
 
+        {error ? (
+          <div className="mt-4 rounded-[1.25rem] border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+            {error}
+          </div>
+        ) : null}
+
+        {success ? (
+          <div className="mt-4 rounded-[1.25rem] border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>{success}</span>
+            </div>
+          </div>
+        ) : null}
+
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-          <Button onClick={() => saveCode(desiredCode)} disabled={loading} className="flex-1">
-            {loading ? "Saving…" : "Generate referral code"}
+          <Button onClick={() => saveCode(desiredCode)} disabled={loading} className="sm:flex-1">
+            {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {loading ? "Saving referral code" : "Save referral code"}
           </Button>
           <Button
             variant="outline"
-            onClick={() => setDesiredCode(buildDefaultInviteCode(displayName, userId))}
-            className="flex-1 bg-transparent text-white"
+            onClick={() => {
+              setDesiredCode(suggestedCode)
+              setError("")
+              setSuccess("")
+            }}
+            className="border-[var(--border)] bg-transparent text-white sm:flex-1"
           >
-            Use suggested code
+            <RefreshCw className="h-4 w-4" /> Use suggested code
           </Button>
         </div>
       </section>
