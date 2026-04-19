@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import type { AuthError } from "@supabase/supabase-js"
-import { resolvePostAuthDestination } from "@/lib/account"
+import { bootstrapAccount, resolvePostAuthDestination } from "@/lib/account"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -34,7 +34,7 @@ function getAuthErrorMessage(error: AuthError): string {
 
 function LoginPageContent() {
   const searchParams = useSearchParams()
-  const role = searchParams.get("role") || "mother"
+  const role = searchParams.get("role") === "doctor" ? "doctor" : "mother"
   const nextPath = searchParams.get("next")
 
   const [email, setEmail] = useState("")
@@ -87,6 +87,19 @@ function LoginPageContent() {
 
     if (!data.user || !data.session) {
       setError("Sign-in did not create a session. Check your email and password and try again.")
+      setLoading(false)
+      return
+    }
+
+    const account = await bootstrapAccount(supabase, data.user)
+
+    if (account.role !== role) {
+      await supabase.auth.signOut()
+      setError(
+        account.role === "doctor"
+          ? "This account is registered as a doctor. Use the doctor login."
+          : "This account is registered as a mother account. Use the mother login."
+      )
       setLoading(false)
       return
     }

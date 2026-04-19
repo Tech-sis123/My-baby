@@ -13,16 +13,21 @@ import { formatStage, getGestationalWeek, getBabyAgeDays, SEVERITY_DOT } from "@
 import { getPregnancyTip, getBabyTip } from "@/lib/tips"
 import type { Pregnancy, Child, Appointment, Flag } from "@/lib/supabase/types"
 import {
+  Activity,
   BellRing,
+  BookOpen,
   Calendar,
   ChevronRight,
+  Clock3,
   HeartPulse,
   Link2,
   LogOut,
   MessageCircle,
   Plus,
+  Route,
   ShieldCheck,
   Sparkles,
+  Stethoscope,
 } from "lucide-react"
 
 const MOTHER_DASHBOARD_IMAGE =
@@ -202,6 +207,55 @@ export function MotherHomeClient({
   const pendingLinkage = totalProfiles - linkedSubjects
   const hasPregnancy = pregnancies.length > 0
   const hasBaby = babyProfiles.length > 0
+  const careJourney = [
+    {
+      title: "Keep the right care mode active",
+      body: hasPregnancy && hasBaby
+        ? "Both pregnancy and baby journeys are active, so this dashboard should keep them separate while still showing them together."
+        : hasPregnancy
+          ? "Pregnancy support should stay first until you add a baby profile or close this journey."
+          : hasBaby
+            ? "Baby care should stay first and not get mixed with pregnancy prompts."
+            : "The dashboard becomes more useful after you add your first pregnancy or baby profile.",
+    },
+    {
+      title: "Check in consistently",
+      body: firstCheckinPending > 0
+        ? `You still have ${firstCheckinPending} care track${firstCheckinPending > 1 ? "s" : ""} waiting for a first check-in.`
+        : "Your active care tracks already have check-in history, which means alerts and summaries can stay more accurate.",
+    },
+    {
+      title: "Keep visits and doctor linkage visible",
+      body: linkedSubjects > 0
+        ? "Some of your care tracks are already linked to a doctor, so new check-ins can flow into the doctor dashboard."
+        : "If you have a doctor referral code, linking it here makes follow-up and prioritization easier on both sides.",
+    },
+  ]
+  const recentActivity = [
+    ...pregnancies.map(pregnancy => ({
+      id: pregnancy.id,
+      title: formatStage("pregnancy", { due_date: pregnancy.due_date }),
+      category: "Pregnancy track",
+      timestamp: lastCheckins[pregnancy.id] || null,
+      note: topFlagMessage(pregnancy.id) || "No urgent pregnancy note is open right now.",
+      href: `/mother/checkin/pregnancy/${pregnancy.id}`,
+    })),
+    ...babyProfiles.map(child => ({
+      id: child.id,
+      title: formatStage("child", { birth_date: child.birth_date, name: child.name }),
+      category: "Baby track",
+      timestamp: lastCheckins[child.id] || null,
+      note: topFlagMessage(child.id) || "No urgent baby-care note is open right now.",
+      href: `/mother/checkin/child/${child.id}`,
+    })),
+  ]
+    .sort((a, b) => {
+      if (!a.timestamp && !b.timestamp) return 0
+      if (!a.timestamp) return 1
+      if (!b.timestamp) return -1
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    })
+    .slice(0, 6)
   const mode = hasPregnancy && hasBaby ? "Dual care mode" : hasPregnancy ? "Pregnancy mode" : hasBaby ? "Baby care mode" : "Start your care journey"
   const overview = hasPregnancy && hasBaby
     ? "Your dashboard is tracking both your pregnancy and your baby."
@@ -525,6 +579,89 @@ export function MotherHomeClient({
               </div>
             </SectionCard>
           )}
+
+          <SectionCard title="Care journey map" subtitle="Long-view planning" accent="text-[var(--primary)]">
+            <div className="grid gap-4 xl:grid-cols-3">
+              {careJourney.map(item => (
+                <div key={item.title} className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--foreground)]">
+                    <Route className="h-4 w-4" /> Care step
+                  </div>
+                  <h3 className="mt-4 text-xl font-semibold text-white">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">{item.body}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+              <div className="rounded-[1.5rem] border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)] p-5">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--foreground)]">
+                  <BookOpen className="h-4 w-4" /> How to use this page
+                </div>
+                <p className="mt-4 text-sm leading-7 text-white">
+                  This dashboard should feel full because it is supposed to hold the whole care story in one place: pregnancy cards, baby cards, alerts, linked-doctor actions, appointments, quick tips, and the next thing you should do. Desktop should not feel empty.
+                </p>
+              </div>
+              <div className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
+                  <Stethoscope className="h-4 w-4" /> Visit prep
+                </div>
+                <p className="mt-4 text-sm leading-7 text-white">
+                  Use the pre-visit brief pages before appointments so your latest check-ins, notes, and alerts are already organized.
+                </p>
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Recent care activity" subtitle="What changed recently" accent="text-[var(--primary)]">
+            {recentActivity.length > 0 ? (
+              <div className="grid gap-4 xl:grid-cols-2">
+                {recentActivity.map(item => (
+                  <Link key={item.id} href={item.href} className="block">
+                    <div className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5 transition hover:border-[rgba(199,143,98,0.34)]">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-[var(--primary)]">
+                            <Activity className="h-4 w-4" /> {item.category}
+                          </div>
+                          <h3 className="mt-3 text-xl font-semibold text-white">{item.title}</h3>
+                        </div>
+                        <div className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
+                          {item.timestamp ? timeAgo(item.timestamp) : "No update yet"}
+                        </div>
+                      </div>
+                      <p className="mt-4 text-sm leading-6 text-[var(--muted-foreground)]">{item.note}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-5 text-sm leading-6 text-[var(--muted-foreground)]">
+                Once your care tracks start getting check-ins, this section will show the most recent activity across pregnancy and baby journeys.
+              </div>
+            )}
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-3">
+              <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                  <Clock3 className="h-4 w-4" /> Routine
+                </div>
+                <p className="mt-3 text-sm leading-6 text-white">Short, consistent check-ins make the dashboard more useful than occasional long updates.</p>
+              </div>
+              <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                  <Calendar className="h-4 w-4" /> Planning
+                </div>
+                <p className="mt-3 text-sm leading-6 text-white">Appointments work better when they are attached to the correct pregnancy or baby profile.</p>
+              </div>
+              <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                  <ShieldCheck className="h-4 w-4" /> Linkage
+                </div>
+                <p className="mt-3 text-sm leading-6 text-white">Doctor linkage matters most when you want your updates to show up on the doctor side in real time.</p>
+              </div>
+            </div>
+          </SectionCard>
         </div>
 
         <aside className="space-y-6">
