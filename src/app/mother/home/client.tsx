@@ -284,7 +284,7 @@ export function MotherHomeClient({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/mother/ask">
+            <Link href="/mother/ask" prefetch={false}>
               <Button variant="ghost" size="icon" aria-label="Health assistant">
                 <MessageCircle className="h-5 w-5" />
               </Button>
@@ -356,12 +356,12 @@ export function MotherHomeClient({
                 Choose the experience that matches you now. If you have a baby, the dashboard should focus on baby care. If you are pregnant, it should focus on pregnancy only.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Link href="/mother/onboarding?add=pregnancy">
+                <Link href="/mother/onboarding?add=pregnancy" prefetch={false}>
                   <Button variant="outline" className="w-full justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
                     Add pregnancy <Plus className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="/mother/onboarding?add=baby">
+                <Link href="/mother/onboarding?add=baby" prefetch={false}>
                   <Button variant="outline" className="w-full justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
                     Add baby <Plus className="h-4 w-4" />
                   </Button>
@@ -375,7 +375,7 @@ export function MotherHomeClient({
               <p className="mb-5 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
                 If you have already delivered, add the baby profile here so baby tips, baby check-ins, and baby appointments stay separate from pregnancy tracking.
               </p>
-              <Link href="/mother/onboarding?add=baby">
+              <Link href="/mother/onboarding?add=baby" prefetch={false}>
                 <Button variant="outline" className="justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
                   Add baby profile <Plus className="h-4 w-4" />
                 </Button>
@@ -388,7 +388,7 @@ export function MotherHomeClient({
               <p className="mb-5 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
                 If you are also pregnant, add that journey separately so pregnancy prompts and baby prompts do not get mixed together.
               </p>
-              <Link href="/mother/onboarding?add=pregnancy">
+              <Link href="/mother/onboarding?add=pregnancy" prefetch={false}>
                 <Button variant="outline" className="justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
                   Add pregnancy profile <Plus className="h-4 w-4" />
                 </Button>
@@ -429,7 +429,7 @@ export function MotherHomeClient({
                               {last ? `Last check-in ${timeAgo(last)}` : "No check-ins yet"}
                             </p>
                           </div>
-                          <Link href={`/mother/checkin/pregnancy/${pregnancy.id}`}>
+                          <Link href={`/mother/checkin/pregnancy/${pregnancy.id}`} prefetch={false}>
                             <Button size="sm">Check in</Button>
                           </Link>
                         </div>
@@ -462,10 +462,10 @@ export function MotherHomeClient({
                         </div>
 
                         <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                          <Link href={`/mother/delivery/${pregnancy.id}`} className="text-[var(--foreground)] hover:text-white">
+                          <Link href={`/mother/delivery/${pregnancy.id}`} prefetch={false} className="text-[var(--foreground)] hover:text-white">
                             I had my baby
                           </Link>
-                          <Link href={`/mother/brief/pregnancy/${pregnancy.id}`} className="text-[var(--muted-foreground)] hover:text-white">
+                          <Link href={`/mother/brief/pregnancy/${pregnancy.id}`} prefetch={false} className="text-[var(--muted-foreground)] hover:text-white">
                             Pre-visit brief
                           </Link>
                           <button
@@ -529,7 +529,7 @@ export function MotherHomeClient({
                               {last ? `Last check-in ${timeAgo(last)}` : "No check-ins yet"}
                             </p>
                           </div>
-                          <Link href={`/mother/checkin/child/${child.id}`}>
+                          <Link href={`/mother/checkin/child/${child.id}`} prefetch={false}>
                             <Button size="sm">Check in</Button>
                           </Link>
                         </div>
@@ -562,7 +562,7 @@ export function MotherHomeClient({
                         </div>
 
                         <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                          <Link href={`/mother/brief/child/${child.id}`} className="text-[var(--muted-foreground)] hover:text-white">
+                          <Link href={`/mother/brief/child/${child.id}`} prefetch={false} className="text-[var(--muted-foreground)] hover:text-white">
                             Pre-visit brief
                           </Link>
                         </div>
@@ -617,7 +617,7 @@ export function MotherHomeClient({
             {recentActivity.length > 0 ? (
               <div className="grid gap-4 xl:grid-cols-2">
                 {recentActivity.map(item => (
-                  <Link key={item.id} href={item.href} className="block">
+                  <Link key={item.id} href={item.href} prefetch={false} className="block">
                     <div className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5 transition hover:border-[rgba(199,143,98,0.34)]">
                       <div className="flex items-start justify-between gap-4">
                         <div>
@@ -712,7 +712,7 @@ export function MotherHomeClient({
               <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
                 <Calendar className="h-4 w-4" /> Upcoming appointments
               </div>
-              <Link href="/mother/appointments" className="text-sm text-[var(--foreground)] hover:text-white">
+              <Link href="/mother/appointments" prefetch={false} className="text-sm text-[var(--foreground)] hover:text-white">
                 View all
               </Link>
             </div>
@@ -720,6 +720,7 @@ export function MotherHomeClient({
             {appointments.length === 0 ? (
               <Link
                 href="/mother/appointments"
+                prefetch={false}
                 className="mt-4 block rounded-[1.4rem] border border-dashed border-[var(--border)] p-4 text-sm leading-6 text-[var(--muted-foreground)] hover:border-[rgba(199,143,98,0.45)] hover:text-white"
               >
                 No upcoming appointments yet. Add your next visit.
@@ -759,24 +760,24 @@ export function MotherHomeClient({
               <BellRing className="h-4 w-4" /> Check-ins and support
             </div>
             <div className="mt-4 space-y-3">
-              <Link href="/mother/ask" className="block rounded-[1.4rem] border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)] p-4">
+              <Link href="/mother/ask" prefetch={false} className="block rounded-[1.4rem] border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)] p-4">
                 <p className="font-semibold text-white">Ask the AI assistant</p>
                 <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
                   Get quick answers based on your current pregnancy or baby-care context.
                 </p>
               </Link>
-              <Link href="/mother/appointments" className="flex items-center justify-between rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4 text-sm text-white">
+              <Link href="/mother/appointments" prefetch={false} className="flex items-center justify-between rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4 text-sm text-white">
                 Schedule or manage appointments <ChevronRight className="h-4 w-4 text-[var(--muted-foreground)]" />
               </Link>
               <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Quick actions</p>
                 <div className="mt-3 grid gap-2">
-                  <Link href="/mother/onboarding?add=pregnancy">
+                  <Link href="/mother/onboarding?add=pregnancy" prefetch={false}>
                     <Button variant="outline" className="w-full justify-between border-[var(--border)] bg-transparent text-white">
                       Add pregnancy <Plus className="h-4 w-4" />
                     </Button>
                   </Link>
-                  <Link href="/mother/onboarding?add=baby">
+                  <Link href="/mother/onboarding?add=baby" prefetch={false}>
                     <Button variant="outline" className="w-full justify-between border-[var(--border)] bg-transparent text-white">
                       Add baby <Plus className="h-4 w-4" />
                     </Button>
