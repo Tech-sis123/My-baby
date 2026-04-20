@@ -257,7 +257,7 @@ export default function Home() {
                 <div className="mt-4 grid gap-3">
                   <div className="rounded-[1.2rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">If she is pregnant</p>
-                    <p className="mt-2 text-sm font-medium text-white">Tips, check-ins, and AI suggestions should stay on pregnancy.</p>
+                    <p className="mt-2 text-sm font-medium text-white">Tips, check-ins, and AI suggestions stay on pregnancy.</p>
                   </div>
                   <div className="rounded-[1.2rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">If she has a baby</p>
@@ -352,7 +352,7 @@ export default function Home() {
 
       <section className="motion-rise-delay mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-7 backdrop-blur">
+          {/* <div className="rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-7 backdrop-blur">
             <p className="text-xs uppercase tracking-[0.28em] text-[#f0d2b5]">Why it feels better</p>
             <h2 className="mt-3 text-3xl font-semibold leading-tight text-white">
               The page now feels fuller without over-explaining itself.
@@ -360,7 +360,7 @@ export default function Home() {
             <p className="mt-4 text-sm leading-7 text-[var(--muted-foreground)]">
               The hierarchy is clearer, the sections breathe better, and the message is easier to understand quickly.
             </p>
-          </div>
+          </div> */}
 
           <div className="grid gap-4 md:grid-cols-3">
             {reassuranceItems.map(item => {
