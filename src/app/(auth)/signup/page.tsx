@@ -17,12 +17,20 @@ function getAuthErrorMessage(error: AuthError): string {
     return "An account with this email already exists. Please sign in instead."
   }
 
+  if (message.includes("invalid email") || message.includes("email address is invalid")) {
+    return "Enter a valid email address."
+  }
+
   if (message.includes("password")) {
     return "Password is too weak. Use at least 8 characters."
   }
 
-  if (message.includes("email")) {
-    return "Enter a valid email address."
+  if (message.includes("email signups are disabled") || message.includes("signups not allowed")) {
+    return "Email signup is currently disabled in Supabase Auth settings."
+  }
+
+  if (message.includes("email rate limit exceeded") || message.includes("over_email_send_rate_limit")) {
+    return "Too many email attempts right now. Please wait a moment and try again."
   }
 
   if (message.includes("too many requests")) {
