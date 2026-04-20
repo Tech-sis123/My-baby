@@ -18,7 +18,7 @@ function getAuthErrorMessage(error: AuthError): string {
   }
 
   if (message.includes("email not confirmed")) {
-    return "Please confirm your email before signing in."
+    return "Email confirmation is still enabled in Supabase for this project. Disable Confirm email in Supabase Auth if you want users to sign in immediately."
   }
 
   if (message.includes("too many requests")) {
@@ -41,6 +41,8 @@ function LoginPageContent() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const normalizedEmail = email.trim().toLowerCase()
 
   function hardRedirect(destination: string) {
     window.location.replace(destination)
@@ -76,8 +78,17 @@ function LoginPageContent() {
     setLoading(true)
     setError("")
 
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
+      setError("Enter a valid email address.")
+      setLoading(false)
+      return
+    }
+
     const supabase = createClient()
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    })
 
     if (authError) {
       setError(getAuthErrorMessage(authError))
@@ -126,7 +137,11 @@ function LoginPageContent() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              type="email"
+              type="text"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               placeholder="you@example.com"
               value={email}
               onChange={e => setEmail(e.target.value)}

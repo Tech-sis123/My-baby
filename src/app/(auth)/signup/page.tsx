@@ -49,6 +49,8 @@ function SignupPageContent() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const normalizedEmail = email.trim().toLowerCase()
+
   function hardRedirect(destination: string) {
     window.location.replace(destination)
   }
@@ -82,9 +84,15 @@ function SignupPageContent() {
     setLoading(true)
     setError("")
 
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
+      setError("Enter a valid email address.")
+      setLoading(false)
+      return
+    }
+
     const supabase = createClient()
     const { data, error: authError } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`,
@@ -109,7 +117,7 @@ function SignupPageContent() {
     }
 
     if (!data.session) {
-      setError("Check your email to confirm your account before signing in.")
+      setError("Account created, but email confirmation is still enabled in Supabase. Disable Confirm email in Supabase Auth if you want users to sign in immediately.")
       setLoading(false)
       return
     }
@@ -172,7 +180,11 @@ function SignupPageContent() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              type="email"
+              type="text"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               placeholder="you@example.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
