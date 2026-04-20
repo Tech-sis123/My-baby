@@ -1,5 +1,5 @@
 "use client"
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
@@ -47,31 +47,6 @@ function LoginPageContent() {
   function hardRedirect(destination: string) {
     window.location.replace(destination)
   }
-
-  useEffect(() => {
-    const supabase = createClient()
-    let cancelled = false
-
-    async function redirectIfAuthenticated() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (cancelled) return
-      if (!user) return
-
-      const destination = await resolvePostAuthDestination(supabase, user, nextPath)
-      if (cancelled) return
-
-      hardRedirect(destination)
-    }
-
-    redirectIfAuthenticated()
-
-    return () => {
-      cancelled = true
-    }
-  }, [nextPath])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
