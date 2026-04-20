@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { signOutAndRedirect } from "@/lib/auth-client"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -266,8 +267,7 @@ export function MotherHomeClient({
         : "Add your first pregnancy or baby to unlock check-ins, quick tips, and doctor linking."
 
   async function handleSignOut() {
-    await supabase.auth.signOut()
-    router.push("/")
+    await signOutAndRedirect(supabase, "/login?role=mother")
   }
 
   return (

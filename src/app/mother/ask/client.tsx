@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { signOutAndRedirect } from "@/lib/auth-client"
 import {
   Bot,
   ChevronLeft,
@@ -45,7 +45,6 @@ export function AskAIClient({
   contextSummary,
   promptSuggestions,
 }: AskAIClientProps) {
-  const router = useRouter()
   const supabase = createClient()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<Message[]>([{ role: "assistant", content: intro }])
@@ -106,8 +105,7 @@ export function AskAIClient({
   const prompts = promptSuggestions && promptSuggestions.length > 0 ? promptSuggestions : config.prompts
 
   async function handleSignOut() {
-    await supabase.auth.signOut()
-    router.push("/")
+    await signOutAndRedirect(supabase, role === "doctor" ? "/login?role=doctor" : "/login?role=mother")
   }
 
   async function handleSendMessage() {

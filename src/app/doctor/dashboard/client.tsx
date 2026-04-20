@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { signOutAndRedirect } from "@/lib/auth-client"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { formatStage } from "@/lib/utils"
@@ -264,7 +264,6 @@ export function DoctorDashboardClient({
   initialFlags,
   initialLastCheckins,
 }: Props) {
-  const router = useRouter()
   const [flags, setFlags] = useState<Flag[]>(initialFlags)
   const [lastCheckins, setLastCheckins] = useState(initialLastCheckins)
   const [realtimePulse, setRealtimePulse] = useState(false)
@@ -363,8 +362,7 @@ export function DoctorDashboardClient({
     .slice(0, 5)
 
   async function signOut() {
-    await supabase.auth.signOut()
-    router.push("/")
+    await signOutAndRedirect(supabase, "/login?role=doctor")
   }
 
   async function copyCode() {
