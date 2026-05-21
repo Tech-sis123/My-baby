@@ -8,7 +8,6 @@ import {
   Baby,
   BarChart3,
   BellRing,
-  BriefcaseMedical,
   Clock3,
   Link2,
   MessageCircle,
@@ -19,8 +18,6 @@ import {
 
 const MOTHER_IMAGE =
   "https://images.pexels.com/photos/35136012/pexels-photo-35136012.jpeg?auto=compress&cs=tinysrgb&w=1200"
-const DOCTOR_IMAGE =
-  "https://images.pexels.com/photos/19957220/pexels-photo-19957220.jpeg?auto=compress&cs=tinysrgb&w=1200"
 
 const productStats = [
   { label: "Daily check-ins", value: "60 sec" },
@@ -157,19 +154,35 @@ export default function Home() {
             Continuous care from first kick to first steps.
           </div>
 
-          <h1 className="mt-6 font-display text-4xl font-semibold leading-[0.96] text-white sm:mt-8 sm:text-6xl xl:text-7xl">
+          <h1 className="mt-6 font-display text-3xl font-semibold leading-[1.05] text-white sm:mt-8 sm:text-4xl xl:text-5xl">
             Pregnancy and baby care, with doctor follow-up that is easier to act on.
           </h1>
 
           <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--muted-foreground)] sm:text-lg sm:leading-8">
             Mothers check in from the right care path. Doctors see linked patients, fresh updates, and clear red, yellow, and green priorities.
           </p>
+        </section>
 
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+        <section className="motion-rise-delay flex flex-col gap-4">
+          <div className="panel-float relative overflow-hidden rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)]">
+            <Image
+              src={MOTHER_IMAGE}
+              alt="African mother holding her baby indoors"
+              width={1200}
+              height={1600}
+              className="photo-float h-[240px] w-full object-cover object-top sm:h-[340px]"
+            />
+            <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,rgba(14,15,19,0),rgba(14,15,19,0.88))] p-5">
+              <p className="text-[11px] uppercase tracking-[0.26em] text-[rgba(255,255,255,0.72)]">Mother experience</p>
+              <p className="mt-2 text-xl font-semibold text-white">Context-aware daily care</p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
             <Link href="/signup?role=mother">
               <Button
                 size="lg"
-                className="w-full bg-[var(--primary)] px-8 shadow-[0_18px_40px_rgba(199,143,98,0.24)] sm:w-auto"
+                className="w-full bg-[var(--primary)] shadow-[0_18px_40px_rgba(199,143,98,0.24)]"
               >
                 For mothers
               </Button>
@@ -178,142 +191,85 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.03)] px-8 text-white sm:w-auto"
+                className="w-full border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.03)] text-white"
               >
                 For doctors
               </Button>
             </Link>
           </div>
-
-          <div className="mt-10 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="panel-float rounded-[1.9rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-6 backdrop-blur">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.26em] text-[#f0d2b5]">About</p>
-                  <p className="mt-3 text-2xl font-semibold text-white">Linked care with invite codes</p>
-                </div>
-              </div>
-              <p className="mt-4 text-sm leading-7 text-[var(--muted-foreground)]">
-                Continuous care from first kick to first steps. Doctors can stay linked to several mothers and babies through invite codes, so updates from different accounts still flow back to one dashboard.
-              </p>
-            </div>
-
-            <div className="rounded-[1.9rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-6 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.26em] text-[var(--muted-foreground)]">Product promise</p>
-              <div className="mt-4 space-y-3">
-                <div className="rounded-[1.2rem] border border-red-400/25 bg-red-500/10 p-4">
-                  <p className="text-sm font-semibold text-white">Red</p>
-                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">Immediate attention</p>
-                </div>
-                <div className="rounded-[1.2rem] border border-yellow-400/25 bg-yellow-500/10 p-4">
-                  <p className="text-sm font-semibold text-white">Yellow</p>
-                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">Review soon</p>
-                </div>
-                <div className="rounded-[1.2rem] border border-emerald-400/25 bg-emerald-500/10 p-4">
-                  <p className="text-sm font-semibold text-white">Green</p>
-                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">Stable and monitored</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="motion-rise-delay grid gap-4">
-          <div className="grid gap-4 md:grid-cols-[1.06fr_0.94fr]">
-            <div className="panel-float relative overflow-hidden rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)]">
-              <Image
-                src={MOTHER_IMAGE}
-                alt="African mother holding her baby indoors"
-                width={1200}
-                height={1600}
-                className="photo-float h-[360px] w-full object-cover sm:h-[520px]"
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,rgba(14,15,19,0),rgba(14,15,19,0.88))] p-5">
-                <p className="text-[11px] uppercase tracking-[0.26em] text-[rgba(255,255,255,0.72)]">Mother experience</p>
-                <p className="mt-2 text-xl font-semibold text-white">Context-aware daily care</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="panel-float relative overflow-hidden rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)]">
-                <Image
-                src={DOCTOR_IMAGE}
-                alt="Black female doctor writing notes during a consultation"
-                width={1200}
-                height={1600}
-                className="photo-float h-[220px] w-full object-cover sm:h-[252px]"
-              />
-                <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,rgba(14,15,19,0),rgba(14,15,19,0.86))] p-5">
-                  <p className="text-[11px] uppercase tracking-[0.26em] text-[rgba(255,255,255,0.72)]">Doctor view</p>
-                  <p className="mt-2 text-lg font-semibold text-white">Responsive triage board</p>
-                </div>
-              </div>
-
-              <div className="rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-5 backdrop-blur">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs uppercase tracking-[0.26em] text-[#f0d2b5]">Live product logic</p>
-                  <BriefcaseMedical className="h-5 w-5 text-[#f0d2b5]" />
-                </div>
-                <div className="mt-4 grid gap-3">
-                  <div className="rounded-[1.2rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">If she is pregnant</p>
-                    <p className="mt-2 text-sm font-medium text-white">Tips, check-ins, and AI suggestions stay on pregnancy.</p>
-                  </div>
-                  <div className="rounded-[1.2rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">If she has a baby</p>
-                    <p className="mt-2 text-sm font-medium text-white">Tips, check-ins, and AI suggestions should stay on baby care.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </section>
       </main>
 
-      <section className="motion-rise mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <div className="grid gap-4 xl:grid-cols-2">
+      <section className="mx-auto max-w-2xl px-4 pb-10 pt-4 text-center sm:px-6">
+        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#f0d2b5]">About</p>
+        <h2 className="mt-4 text-4xl font-semibold text-white sm:text-5xl">Linked care with invite codes</h2>
+        <p className="mt-5 text-sm leading-7 text-[var(--muted-foreground)]">
+          Continuous care from first kick to first steps. Doctors can stay linked to several mothers and babies through invite codes, so updates from different accounts still flow back to one dashboard.
+        </p>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
+        <p className="mb-6 text-center text-xs uppercase tracking-[0.28em] text-[var(--muted-foreground)]">Product promise</p>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-[1.4rem] border border-red-400/25 bg-red-500/10 p-6">
+            <p className="text-base font-semibold text-white">Red</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">Immediate attention — flagged for urgent doctor review.</p>
+          </div>
+          <div className="rounded-[1.4rem] border border-yellow-400/25 bg-yellow-500/10 p-6">
+            <p className="text-base font-semibold text-white">Yellow</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">Review soon — concern noted, follow up expected.</p>
+          </div>
+          <div className="rounded-[1.4rem] border border-emerald-400/25 bg-emerald-500/10 p-6">
+            <p className="text-base font-semibold text-white">Green</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">Stable and monitored — routine care continuing.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="motion-rise mx-auto max-w-7xl px-4 py-4 sm:px-6">
+        <div className="grid gap-3 xl:grid-cols-2">
           {featureColumns.map(column => {
             const Icon = column.icon
             return (
               <div
                 key={column.title}
-                className="rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-7 backdrop-blur"
+                className="rounded-[1.5rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-5 backdrop-blur"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)]">
-                    <Icon className="h-5 w-5 text-[#f0d2b5]" />
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)]">
+                    <Icon className="h-4 w-4 text-[#f0d2b5]" />
                   </div>
                   <p className="text-xs uppercase tracking-[0.28em] text-[#f0d2b5]">{column.eyebrow}</p>
                 </div>
-                <h2 className="mt-5 max-w-xl text-3xl font-semibold leading-tight text-white">{column.title}</h2>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--muted-foreground)]">{column.body}</p>
+                <h2 className="mt-3 text-xl font-semibold leading-tight text-white">{column.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{column.body}</p>
               </div>
             )
           })}
         </div>
       </section>
 
-      <section className="motion-rise-delay mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <div className="rounded-[2.25rem] border border-[rgba(255,248,239,0.14)] bg-[linear-gradient(135deg,rgba(255,248,239,0.08),rgba(201,139,88,0.08))] p-7 sm:p-9">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <section className="motion-rise-delay mx-auto max-w-7xl px-4 py-4 sm:px-6">
+        <div className="rounded-[1.75rem] border border-[rgba(255,248,239,0.14)] bg-[linear-gradient(135deg,rgba(255,248,239,0.08),rgba(201,139,88,0.08))] p-5 sm:p-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="text-xs uppercase tracking-[0.28em] text-[#f0d2b5]">How it works</p>
-              <h2 className="mt-3 text-4xl font-semibold leading-tight text-white">The product flow should feel obvious before people even sign in.</h2>
+              <h2 className="mt-2 text-2xl font-semibold leading-tight text-white">The product flow should feel obvious before people even sign in.</h2>
             </div>
-            <p className="max-w-xl text-sm leading-7 text-[var(--muted-foreground)]">
+            <p className="max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
               A simple flow: choose the right path, check in, and keep the doctor side updated.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          <div className="mt-5 grid gap-3 lg:grid-cols-3">
             {processSteps.map(step => (
               <div
                 key={step.number}
-                className="rounded-[1.7rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-6"
+                className="rounded-[1.3rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-4"
               >
-                <p className="text-sm font-semibold tracking-[0.18em] text-[#f0d2b5]">{step.number}</p>
-                <h3 className="mt-4 text-2xl font-semibold text-white">{step.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{step.body}</p>
+                <p className="text-xs font-semibold tracking-[0.18em] text-[#f0d2b5]">{step.number}</p>
+                <h3 className="mt-2 text-lg font-semibold text-white">{step.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{step.body}</p>
               </div>
             ))}
           </div>
@@ -351,32 +307,22 @@ export default function Home() {
       </section>
 
       <section className="motion-rise-delay mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-          {/* <div className="rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-7 backdrop-blur">
-            <p className="text-xs uppercase tracking-[0.28em] text-[#f0d2b5]">Why it feels better</p>
-            <h2 className="mt-3 text-3xl font-semibold leading-tight text-white">
-              The page now feels fuller without over-explaining itself.
-            </h2>
-            <p className="mt-4 text-sm leading-7 text-[var(--muted-foreground)]">
-              The hierarchy is clearer, the sections breathe better, and the message is easier to understand quickly.
-            </p>
-          </div> */}
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {reassuranceItems.map(item => {
-              const Icon = item.icon
-              return (
-                <div
-                  key={item.title}
-                  className="rounded-[1.8rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-6 backdrop-blur"
-                >
+        <div className="grid gap-4 md:grid-cols-3">
+          {reassuranceItems.map(item => {
+            const Icon = item.icon
+            return (
+              <div
+                key={item.title}
+                className="rounded-[1.8rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-8 backdrop-blur"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)]">
                   <Icon className="h-5 w-5 text-[#f0d2b5]" />
-                  <h3 className="mt-5 text-xl font-semibold text-white">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{item.body}</p>
                 </div>
-              )
-            })}
-          </div>
+                <h3 className="mt-6 text-xl font-semibold text-white">{item.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{item.body}</p>
+              </div>
+            )
+          })}
         </div>
       </section>
 
