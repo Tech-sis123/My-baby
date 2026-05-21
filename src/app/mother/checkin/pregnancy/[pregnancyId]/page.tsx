@@ -189,6 +189,12 @@ export default function PregnancyCheckinPage() {
 
     const data = await response.json()
     setSubmitting(false)
+
+    if (!response.ok) {
+      alert("Check-in failed: " + (data.error || "Unknown error occurred while submitting."))
+      return
+    }
+
     setResult(data)
   }
 

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
-      <body className="min-h-full overflow-x-hidden antialiased">
+      <body className="min-h-full overflow-x-hidden antialiased" suppressHydrationWarning>
         <div aria-hidden="true" className="platform-bubbles">
           <span className="platform-bubble bubble-a" />
           <span className="platform-bubble bubble-b" />

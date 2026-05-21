@@ -18,6 +18,7 @@ import {
   Siren,
   Stethoscope,
   Users,
+  MessageSquare,
 } from "lucide-react"
 
 const DOCTOR_IMAGE =
@@ -343,6 +344,11 @@ export function DoctorDashboardClient({
                 <RefreshCw className="h-3 w-3 animate-spin" /> Live
               </span>
             )}
+            <Link href="/doctor/messages">
+              <Button variant="ghost" size="icon" aria-label="Messages">
+                <MessageSquare className="h-4.5 w-4.5" />
+              </Button>
+            </Link>
             <Link href="/doctor/ask">
               <Button variant="ghost" size="icon" aria-label="Doctor AI">
                 <Bot className="h-4.5 w-4.5" />

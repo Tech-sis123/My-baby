@@ -101,7 +101,7 @@ function SignupPageContent() {
     }
 
     if (!data.session) {
-      setError("Account created, but email confirmation is still enabled in Supabase. Disable Confirm email in Supabase Auth if you want users to sign in immediately.")
+      setError("Account created successfully! Please check your email to confirm your account before signing in.")
       setLoading(false)
       return
     }

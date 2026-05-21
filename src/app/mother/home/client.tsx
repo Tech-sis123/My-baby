@@ -17,7 +17,9 @@ import {
   ChevronRight,
   Link2,
   LogOut,
-  MessageCircle,
+  Bot,
+  Settings,
+  MessageSquare,
   Plus,
 } from "lucide-react"
 
@@ -203,9 +205,19 @@ export function MotherHomeClient({
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <Link href="/mother/messages" prefetch={false}>
+              <Button variant="ghost" size="icon" aria-label="Messages">
+                <MessageSquare className="h-4.5 w-4.5" />
+              </Button>
+            </Link>
             <Link href="/mother/ask" prefetch={false}>
               <Button variant="ghost" size="icon" aria-label="Health assistant">
-                <MessageCircle className="h-4.5 w-4.5" />
+                <Bot className="h-4.5 w-4.5" />
+              </Button>
+            </Link>
+            <Link href="/mother/settings" prefetch={false}>
+              <Button variant="ghost" size="icon" aria-label="Settings">
+                <Settings className="h-4.5 w-4.5" />
               </Button>
             </Link>
             <Button variant="ghost" size="icon" onClick={handleSignOut} aria-label="Sign out">

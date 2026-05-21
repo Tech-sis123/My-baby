@@ -237,6 +237,45 @@ export interface Database {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          id: string
+          sender_id: string
+          receiver_id: string
+          content: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          sender_id: string
+          receiver_id: string
+          content: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          sender_id?: string
+          receiver_id?: string
+          content?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -252,3 +291,4 @@ export type Child = Database["public"]["Tables"]["children"]["Row"]
 export type Checkin = Database["public"]["Tables"]["checkins"]["Row"]
 export type Flag = Database["public"]["Tables"]["flags"]["Row"]
 export type Appointment = Database["public"]["Tables"]["appointments"]["Row"]
+export type Message = Database["public"]["Tables"]["messages"]["Row"]
