@@ -17,7 +17,7 @@ const MOTHER_IMAGE =
 
 const featureColumns = [
   {
-    eyebrow: "For mothers",
+    eyebrow: "For patients",
     title: "Pregnancy and baby care stay in the right lane.",
     body: "If a mother is pregnant, the app stays on pregnancy. If she has a baby, it stays on baby care.",
     icon: Baby,
@@ -118,7 +118,7 @@ export default function Home() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/signup?role=mother">
               <Button size="lg" className="bg-[var(--primary)] px-8 shadow-[0_18px_40px_rgba(199,143,98,0.24)]">
-                For mothers
+                For patients
               </Button>
             </Link>
             <Link href="/signup?role=doctor">
