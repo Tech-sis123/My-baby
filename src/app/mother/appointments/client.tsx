@@ -138,7 +138,7 @@ export function AppointmentsClient({ motherId, profileName, appointments, pregna
     const { error: insertError } = await supabase.from("appointments").insert({
       mother_id: motherId,
       title: title.trim(),
-      scheduled_at: scheduledAt,
+      scheduled_at: new Date(scheduledAt).toISOString(),
       notes: notes.trim() || null,
       subject_type: subjectType || null,
       subject_id: subjectId || null,

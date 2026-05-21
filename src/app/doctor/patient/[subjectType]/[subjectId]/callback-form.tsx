@@ -42,7 +42,7 @@ export function ScheduleCallbackForm({ motherId, doctorId, subjectType, subjectI
       subject_type: subjectType,
       subject_id: subjectId,
       title,
-      scheduled_at: scheduledAt,
+      scheduled_at: new Date(scheduledAt).toISOString(),
       notes: notes || null,
     })
 
