@@ -9,10 +9,8 @@ import {
   CalendarClock,
   HeartPulse,
   Phone,
-  ShieldCheck,
   Siren,
-  Stethoscope,
-  UserRound,
+  ShieldCheck,
 } from "lucide-react"
 import { MedicalFooter } from "@/components/medical-footer"
 import type { Appointment } from "@/lib/supabase/types"
@@ -109,131 +107,42 @@ function payloadDetails(subjectType: string, payload: Record<string, unknown> | 
   const details: Array<{ label: string; value: string }> = []
 
   if (subjectType === "pregnancy") {
-    if (payload.feeling != null) {
-      details.push({
-        label: "How she feels",
-        value: String(payload.feeling).replaceAll("_", " "),
-      })
-    }
-    if (payload.bleeding != null) {
-      details.push({ label: "Bleeding", value: Boolean(payload.bleeding) ? "Yes" : "No" })
-    }
-    if (payload.severe_headache != null) {
-      details.push({ label: "Severe headache", value: Boolean(payload.severe_headache) ? "Yes" : "No" })
-    }
-    if (payload.swelling != null) {
-      details.push({ label: "Swelling", value: Boolean(payload.swelling) ? "Yes" : "No" })
-    }
-    if (payload.fetal_movement != null) {
-      details.push({ label: "Fetal movement", value: Boolean(payload.fetal_movement) ? "Present" : "Reduced / absent" })
-    }
-    if (payload.bp_systolic != null) {
-      details.push({
-        label: "Blood pressure",
-        value: `${String(payload.bp_systolic)}/${String(payload.bp_diastolic ?? "?")} mmHg`,
-      })
-    }
+    if (payload.feeling != null) details.push({ label: "Feeling", value: String(payload.feeling).replaceAll("_", " ") })
+    if (payload.bleeding != null) details.push({ label: "Bleeding", value: Boolean(payload.bleeding) ? "Yes" : "No" })
+    if (payload.severe_headache != null) details.push({ label: "Severe headache", value: Boolean(payload.severe_headache) ? "Yes" : "No" })
+    if (payload.swelling != null) details.push({ label: "Swelling", value: Boolean(payload.swelling) ? "Yes" : "No" })
+    if (payload.fetal_movement != null) details.push({ label: "Fetal movement", value: Boolean(payload.fetal_movement) ? "Present" : "Reduced / absent" })
+    if (payload.bp_systolic != null) details.push({ label: "Blood pressure", value: `${String(payload.bp_systolic)}/${String(payload.bp_diastolic ?? "?")} mmHg` })
   } else {
-    if (payload.feeding != null) {
-      details.push({
-        label: "Feeding",
-        value: String(payload.feeding).replaceAll("_", " "),
-      })
-    }
-    if (payload.wet_diapers_24h != null) {
-      details.push({
-        label: "Wet diapers",
-        value: `${String(payload.wet_diapers_24h)} in 24h`,
-      })
-    }
-    if (payload.fever != null) {
-      details.push({ label: "Fever", value: Boolean(payload.fever) ? "Yes" : "No" })
-    }
-    if (payload.temp != null) {
-      details.push({ label: "Temperature", value: `${String(payload.temp)}°C` })
-    }
-    if (payload.breathing_normal != null) {
-      details.push({
-        label: "Breathing",
-        value: Boolean(payload.breathing_normal) ? "Normal" : "Needs review",
-      })
-    }
-    if (payload.mother_mood != null) {
-      details.push({
-        label: "Mother mood",
-        value: String(payload.mother_mood).replaceAll("_", " "),
-      })
-    }
+    if (payload.feeding != null) details.push({ label: "Feeding", value: String(payload.feeding).replaceAll("_", " ") })
+    if (payload.wet_diapers_24h != null) details.push({ label: "Wet diapers", value: `${String(payload.wet_diapers_24h)} in 24h` })
+    if (payload.fever != null) details.push({ label: "Fever", value: Boolean(payload.fever) ? "Yes" : "No" })
+    if (payload.temp != null) details.push({ label: "Temperature", value: `${String(payload.temp)}°C` })
+    if (payload.breathing_normal != null) details.push({ label: "Breathing", value: Boolean(payload.breathing_normal) ? "Normal" : "Needs review" })
+    if (payload.mother_mood != null) details.push({ label: "Mother mood", value: String(payload.mother_mood).replaceAll("_", " ") })
   }
 
   return details
 }
 
-function latestSummary(
-  subjectType: string,
-  payload: Record<string, unknown> | null,
-  latestFlags: FlagRow[],
-  stage: string
-) {
-  const bullets: string[] = []
-
-  if (latestFlags.length > 0) {
-    bullets.push(latestFlags[0].message)
-  }
-
-  if (subjectType === "pregnancy") {
-    bullets.push(`Current track: ${stage}.`)
-
-    if (payload?.feeling != null) {
-      bullets.push(`Mother reports feeling ${String(payload.feeling).replaceAll("_", " ")}.`)
-    }
-    if (payload?.bp_systolic != null) {
-      bullets.push(`Last blood pressure entered was ${String(payload.bp_systolic)}/${String(payload.bp_diastolic ?? "?")} mmHg.`)
-    }
-    if (typeof payload?.note === "string" && payload.note.length > 0) {
-      bullets.push(`Latest note: "${String(payload.note)}"`)
-    }
-  } else {
-    bullets.push(`Current track: ${stage}.`)
-
-    if (payload?.feeding != null) {
-      bullets.push(`Baby is currently on ${String(payload.feeding).replaceAll("_", " ")}.`)
-    }
-    if (payload?.wet_diapers_24h != null) {
-      bullets.push(`Wet diaper count recorded: ${String(payload.wet_diapers_24h)} in 24 hours.`)
-    }
-    if (payload?.mother_mood != null) {
-      bullets.push(`Mother mood recorded as ${String(payload.mother_mood).replaceAll("_", " ")}.`)
-    }
-    if (typeof payload?.note === "string" && payload.note.length > 0) {
-      bullets.push(`Latest note: "${String(payload.note)}"`)
-    }
-  }
-
-  return bullets.slice(0, 4)
-}
-
-function MetricCard({
+function StatPill({
   label,
   value,
-  note,
   icon,
   accent,
 }: {
   label: string
   value: string | number
-  note: string
   icon: ReactNode
   accent: string
 }) {
   return (
-    <div className={`rounded-[1.35rem] border p-4 ${accent}`}>
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs uppercase tracking-[0.22em]">{label}</p>
+    <div className={`rounded-xl border px-4 py-3 ${accent}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] uppercase tracking-[0.22em]">{label}</p>
         {icon}
       </div>
-      <p className="mt-3 text-3xl font-semibold text-white">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{note}</p>
+      <p className="mt-1.5 text-xl font-semibold text-white">{value}</p>
     </div>
   )
 }
@@ -315,299 +224,213 @@ export default async function DoctorPatientPage({
   ).length
   const appointmentRows = (appointments || []) as Appointment[]
   const upcomingAppointments = appointmentRows.filter(appointment => appointment.scheduled_at >= new Date().toISOString())
-  const careSummary = latestSummary(subjectType, latestCheckin?.payload || null, latestFlags, stage)
 
   return (
     <div className="min-h-screen pb-20">
-      <header className="border-b border-[var(--border)] bg-[rgba(77,64,54,0.74)] px-4 py-4 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      {/* Header */}
+      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(43,37,31,0.88)] px-4 py-3 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
               href="/doctor/dashboard"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4" />
             </Link>
-
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-[var(--primary)]">Doctor patient workspace</p>
-              <h1 className="mt-1 text-3xl font-semibold text-white">{mother?.full_name || "Linked patient"}</h1>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]">
+                {subjectType === "pregnancy" ? "Pregnancy" : "Baby"} · {stage}
+              </p>
+              <h1 className="text-base font-semibold text-white">{mother?.full_name || "Linked patient"}</h1>
             </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
             <Link href={`/doctor/ask?subjectType=${subjectType}&subjectId=${subjectId}`}>
-              <span className="inline-flex h-12 items-center gap-2 rounded-xl border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-4 text-sm font-semibold text-white transition hover:border-[rgba(201,139,88,0.34)]">
-                <Bot className="h-4 w-4" /> Ask AI about case
+              <span className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 text-sm font-medium text-white transition hover:border-[rgba(201,139,88,0.34)]">
+                <Bot className="h-3.5 w-3.5" /> Ask AI
               </span>
             </Link>
-            <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs uppercase tracking-[0.22em] ${severityBadge(overallSeverity)}`}>
-              <span className={`h-2.5 w-2.5 rounded-full ${severityDot(overallSeverity)}`} />
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.22em] ${severityBadge(overallSeverity)}`}>
+              <span className={`h-2 w-2 rounded-full ${severityDot(overallSeverity)}`} />
               {severityLabel(overallSeverity)}
             </span>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-7xl px-4 py-6">
-        <section className="panel-float overflow-hidden rounded-[2.25rem] border border-[var(--border)] bg-[rgba(73,60,51,0.76)] shadow-[0_24px_60px_rgba(0,0,0,0.18)]">
-          <div className="grid gap-0 xl:grid-cols-[1.15fr_0.85fr]">
-            <div className="p-6 sm:p-8">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(201,139,88,0.26)] bg-[rgba(201,139,88,0.1)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--foreground)]">
-                <Stethoscope className="h-3.5 w-3.5" /> Linked care case review
-              </div>
-
-              <h2 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight text-white sm:text-5xl">
-                {subjectType === "pregnancy" ? "Pregnancy" : "Baby"} case context stays visible while you triage and follow up.
-              </h2>
-
-              <div className="mt-4 flex flex-wrap gap-2 text-sm text-[var(--muted-foreground)]">
-                <span>{stage}</span>
-                <span>· {subjectType === "pregnancy" ? "Pregnancy monitoring" : "Baby monitoring"}</span>
-                {mother?.phone ? <span>· {mother.phone}</span> : null}
-              </div>
-
-              <p className="mt-5 max-w-3xl text-sm leading-7 text-[var(--muted-foreground)]">
-                This page should feel like the inside of a working clinical product: current status, recent signals, callback planning, and patient history all remain visible in one place.
-              </p>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <MetricCard
-                  label="Latest status"
-                  value={severityLabel(overallSeverity)}
-                  note={lastUpdate ? `Latest check-in came in ${timeAgo(lastUpdate)}.` : "No check-in submitted yet."}
-                  icon={overallSeverity === "red" ? <Siren className="h-4 w-4 text-red-200" /> : overallSeverity === "yellow" ? <AlertTriangle className="h-4 w-4 text-yellow-100" /> : <ShieldCheck className="h-4 w-4 text-emerald-100" />}
-                  accent={severityPanel(overallSeverity)}
-                />
-                <MetricCard
-                  label="Check-ins"
-                  value={checkinRows.length}
-                  note={`Recent updates loaded into this care timeline, including ${yellowCount} yellow reviews.`}
-                  icon={<Activity className="h-4 w-4 text-[var(--foreground)]" />}
-                  accent="border-[var(--border)] bg-[rgba(255,248,239,0.08)]"
-                />
-                <MetricCard
-                  label="Red reviews"
-                  value={redCount}
-                  note="Past check-ins in this history that were flagged urgent."
-                  icon={<HeartPulse className="h-4 w-4 text-red-200" />}
-                  accent="border-red-400/22 bg-red-500/8 text-red-100"
-                />
-                <MetricCard
-                  label="Booked callbacks"
-                  value={appointmentRows.length}
-                  note={upcomingAppointments.length > 0 ? `${upcomingAppointments.length} still upcoming.` : "No callback booked yet."}
-                  icon={<CalendarClock className="h-4 w-4 text-[var(--foreground)]" />}
-                  accent="border-[var(--border)] bg-[rgba(255,248,239,0.08)]"
-                />
-              </div>
-            </div>
-
-            <div className="border-t border-[var(--border)] p-6 xl:border-l xl:border-t-0">
-              <div className="rounded-[1.65rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                  <UserRound className="h-4 w-4" /> Case identity
-                </div>
-
-                <div className="mt-5 space-y-4">
-                  <div className="rounded-[1.25rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Mother</p>
-                    <p className="mt-2 text-lg font-semibold text-white">{mother?.full_name || "Linked mother"}</p>
-                    <div className="mt-3 flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                      <Phone className="h-4 w-4" />
-                      <span>{mother?.phone || "No phone on file yet"}</span>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[1.25rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
-                      <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Care track</p>
-                      <p className="mt-2 text-base font-semibold text-white">
-                        {subjectType === "pregnancy" ? "Pregnancy track" : "Baby track"}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{stage}</p>
-                    </div>
-
-                    <div className="rounded-[1.25rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
-                      <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Case notes</p>
-                      <p className="mt-2 text-base font-semibold text-white">{notesCount}</p>
-                      <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                        Check-ins that included written context from the mother.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={`mt-4 rounded-[1.65rem] border p-5 ${severityPanel(overallSeverity)}`}>
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                  <HeartPulse className="h-4 w-4" /> Clinical snapshot
-                </div>
-                <div className="mt-4 space-y-3">
-                  {careSummary.length > 0 ? (
-                    careSummary.map(line => (
-                      <div key={line} className="rounded-[1.1rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(42,34,28,0.35)] px-4 py-3 text-sm leading-6 text-white">
-                        {line}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="rounded-[1.1rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(42,34,28,0.35)] px-4 py-3 text-sm leading-6 text-white">
-                      No check-in has been submitted on this track yet. Once the mother completes a check-in, the latest signals will appear here first.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+      {/* Identity + stats strip */}
+      <div className="border-b border-[var(--border)] bg-[rgba(73,60,51,0.5)]">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-px divide-x divide-[var(--border)]">
+          <div className="flex items-center gap-3 px-4 py-3">
+            <Phone className="h-3.5 w-3.5 text-[var(--muted-foreground)]" />
+            <span className="text-sm text-white">{mother?.phone || "No phone on file"}</span>
           </div>
+          {[
+            { label: "Check-ins", value: checkinRows.length, icon: <Activity className="h-3.5 w-3.5" /> },
+            { label: "Red", value: redCount, icon: <HeartPulse className="h-3.5 w-3.5 text-red-200" /> },
+            { label: "Yellow", value: yellowCount, icon: <AlertTriangle className="h-3.5 w-3.5 text-yellow-100" /> },
+            { label: "Notes", value: notesCount, icon: <ShieldCheck className="h-3.5 w-3.5" /> },
+            {
+              label: "Last update",
+              value: lastUpdate ? timeAgo(lastUpdate) : "None",
+              icon: overallSeverity === "red" ? <Siren className="h-3.5 w-3.5 text-red-200" /> : <ShieldCheck className="h-3.5 w-3.5" />,
+            },
+          ].map(stat => (
+            <div key={stat.label} className="flex items-center gap-2 px-4 py-3">
+              <span className="text-[var(--muted-foreground)]">{stat.icon}</span>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">{stat.label}</p>
+                <p className="text-sm font-semibold text-white">{stat.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 2xl:grid-cols-[1.2fr_0.8fr]">
+
+        {/* Timeline */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">Check-in timeline</p>
+            <span className="text-xs text-[var(--muted-foreground)]">
+              {checkinRows.length > 0 ? `${checkinRows.length} entries` : "Awaiting first check-in"}
+            </span>
+          </div>
+
+          {checkinRows.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-6 text-sm leading-6 text-[var(--muted-foreground)]">
+              No check-in has been recorded on this track yet.
+            </div>
+          ) : (
+            checkinRows.map(checkin => {
+              const flags = flagsByCheckin[checkin.id] || []
+              const severity = getSeverity(flags)
+              const details = payloadDetails(subjectType, checkin.payload)
+              const note = typeof checkin.payload?.note === "string" ? checkin.payload.note : null
+
+              return (
+                <div key={checkin.id} className={`rounded-xl border p-4 ${severityPanel(severity)}`}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2 w-2 rounded-full ${severityDot(severity)}`} />
+                      <p className="text-sm font-semibold text-white">{formatDateTime(checkin.created_at)}</p>
+                    </div>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.22em] ${severityBadge(severity)}`}>
+                      {severityLabel(severity)}
+                    </span>
+                  </div>
+
+                  {flags.length > 0 ? (
+                    <div className="mt-3 space-y-1.5">
+                      {flags.map(flag => (
+                        <div
+                          key={`${checkin.id}-${flag.rule_id}`}
+                          className={`rounded-lg border px-3 py-2 text-xs leading-5 ${
+                            flag.severity === "red"
+                              ? "border-red-400/25 bg-red-500/12 text-red-100"
+                              : "border-yellow-400/25 bg-yellow-500/12 text-yellow-100"
+                          }`}
+                        >
+                          {flag.message}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {details.length > 0 ? (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      {details.map(detail => (
+                        <div
+                          key={`${checkin.id}-${detail.label}`}
+                          className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(42,34,28,0.35)] px-3 py-2"
+                        >
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">{detail.label}</p>
+                          <p className="mt-1 text-xs font-medium capitalize text-white">{detail.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {note ? (
+                    <div className="mt-3 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(42,34,28,0.35)] px-3 py-2">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Mother note</p>
+                      <p className="mt-1 text-xs leading-5 text-white">{note}</p>
+                    </div>
+                  ) : null}
+                </div>
+              )
+            })
+          )}
         </section>
 
-        <div className="mt-6 grid gap-6 2xl:grid-cols-[1.15fr_0.85fr]">
-          <section className="space-y-6">
-            <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-              <div className="flex flex-col gap-4 border-b border-[var(--border)] pb-5 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.26em] text-[var(--primary)]">Timeline</p>
-                  <h3 className="mt-2 text-3xl font-semibold text-white">Recent check-in history</h3>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
-                    Each entry keeps its warning level, structured answers, and free-text note so you can review the patient story quickly.
-                  </p>
-                </div>
-                <div className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-xs uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
-                  {checkinRows.length > 0 ? `${checkinRows.length} recent entries` : "Awaiting first check-in"}
-                </div>
-              </div>
+        {/* Sidebar */}
+        <aside className="space-y-4">
+          {/* Quick stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <StatPill
+              label="Status"
+              value={severityLabel(overallSeverity)}
+              icon={overallSeverity === "red" ? <Siren className="h-4 w-4 text-red-200" /> : overallSeverity === "yellow" ? <AlertTriangle className="h-4 w-4 text-yellow-100" /> : <ShieldCheck className="h-4 w-4 text-emerald-100" />}
+              accent={severityPanel(overallSeverity)}
+            />
+            <StatPill
+              label="Callbacks"
+              value={appointmentRows.length}
+              icon={<CalendarClock className="h-4 w-4 text-[var(--foreground)]" />}
+              accent="border-[var(--border)] bg-[rgba(255,248,239,0.08)]"
+            />
+          </div>
 
-              {checkinRows.length === 0 ? (
-                <div className="mt-6 rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-6 text-sm leading-6 text-[var(--muted-foreground)]">
-                  No check-in has been recorded on this track yet. The linkage is active, but the doctor side still needs a first patient update before alerts and timeline data can appear here.
-                </div>
-              ) : (
-                <div className="mt-6 space-y-4">
-                  {checkinRows.map(checkin => {
-                    const flags = flagsByCheckin[checkin.id] || []
-                    const severity = getSeverity(flags)
-                    const details = payloadDetails(subjectType, checkin.payload)
-                    const note = typeof checkin.payload?.note === "string" ? checkin.payload.note : null
+          {/* Callback form */}
+          <ScheduleCallbackForm
+            motherId={motherId}
+            doctorId={user.id}
+            subjectType={subjectType}
+            subjectId={subjectId}
+          />
 
-                    return (
-                      <div key={checkin.id} className={`rounded-[1.65rem] border p-5 ${severityPanel(severity)}`}>
-                        <div className="flex flex-col gap-3 border-b border-[rgba(255,255,255,0.08)] pb-4 lg:flex-row lg:items-start lg:justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className={`h-2.5 w-2.5 rounded-full ${severityDot(severity)}`} />
-                              <p className="text-lg font-semibold text-white">{formatDateTime(checkin.created_at)}</p>
-                            </div>
-                            <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-                              Logged {timeAgo(checkin.created_at)} on the {subjectType === "pregnancy" ? "pregnancy" : "baby"} track.
-                            </p>
-                          </div>
-                          <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs uppercase tracking-[0.22em] ${severityBadge(severity)}`}>
-                            {severityLabel(severity)}
-                          </span>
-                        </div>
-
-                        {flags.length > 0 ? (
-                          <div className="mt-4 space-y-2">
-                            {flags.map(flag => (
-                              <div
-                                key={`${checkin.id}-${flag.rule_id}`}
-                                className={`rounded-[1.1rem] border px-4 py-3 text-sm leading-6 ${
-                                  flag.severity === "red"
-                                    ? "border-red-400/25 bg-red-500/12 text-red-100"
-                                    : "border-yellow-400/25 bg-yellow-500/12 text-yellow-100"
-                                }`}
-                              >
-                                {flag.message}
-                              </div>
-                            ))}
-                          </div>
-                        ) : null}
-
-                        {details.length > 0 ? (
-                          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                            {details.map(detail => (
-                              <div
-                                key={`${checkin.id}-${detail.label}`}
-                                className="rounded-[1.15rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(42,34,28,0.35)] p-4"
-                              >
-                                <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-                                  {detail.label}
-                                </p>
-                                <p className="mt-2 text-sm font-medium capitalize text-white">{detail.value}</p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : null}
-
-                        {note ? (
-                          <div className="mt-4 rounded-[1.2rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(42,34,28,0.35)] p-4">
-                            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Mother note</p>
-                            <p className="mt-2 text-sm leading-6 text-white">{note}</p>
-                          </div>
-                        ) : null}
+          {/* Callback schedule */}
+          <section className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
+            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+              <CalendarClock className="h-3.5 w-3.5" /> Callbacks
+            </div>
+            <div className="mt-3 space-y-2">
+              {appointmentRows.length > 0 ? (
+                appointmentRows.map(appointment => {
+                  const isUpcoming = appointment.scheduled_at >= new Date().toISOString()
+                  return (
+                    <div
+                      key={appointment.id}
+                      className="rounded-xl border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-3"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-white">{appointment.title}</p>
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.22em] ${
+                            isUpcoming
+                              ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-100"
+                              : "border-[var(--border)] text-[var(--muted-foreground)]"
+                          }`}
+                        >
+                          {isUpcoming ? "Up" : "Past"}
+                        </span>
                       </div>
-                    )
-                  })}
+                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">{formatAppointmentDate(appointment.scheduled_at)}</p>
+                      {appointment.notes ? (
+                        <p className="mt-2 text-xs leading-5 text-white">{appointment.notes}</p>
+                      ) : null}
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="rounded-xl border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-3 text-xs text-[var(--muted-foreground)]">
+                  No callback booked yet.
                 </div>
               )}
-            </section>
+            </div>
           </section>
-
-          <aside className="space-y-6">
-            <ScheduleCallbackForm
-              motherId={motherId}
-              doctorId={user.id}
-              subjectType={subjectType}
-              subjectId={subjectId}
-            />
-
-            <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                <CalendarClock className="h-4 w-4" /> Callback schedule
-              </div>
-
-              <div className="mt-5 space-y-3">
-                {appointmentRows.length > 0 ? (
-                  appointmentRows.map(appointment => {
-                    const isUpcoming = appointment.scheduled_at >= new Date().toISOString()
-
-                    return (
-                      <div
-                        key={appointment.id}
-                        className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-4"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-base font-semibold text-white">{appointment.title}</p>
-                          <span
-                            className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] ${
-                              isUpcoming
-                                ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-100"
-                                : "border-[var(--border)] bg-[rgba(255,248,239,0.06)] text-[var(--muted-foreground)]"
-                            }`}
-                          >
-                            {isUpcoming ? "Upcoming" : "Past"}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-sm text-[var(--muted-foreground)]">{formatAppointmentDate(appointment.scheduled_at)}</p>
-                        {appointment.notes ? (
-                          <p className="mt-3 text-sm leading-6 text-white">{appointment.notes}</p>
-                        ) : (
-                          <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
-                            No scheduling notes added.
-                          </p>
-                        )}
-                      </div>
-                    )
-                  })
-                ) : (
-                  <div className="rounded-[1.35rem] border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-4 text-sm leading-6 text-[var(--muted-foreground)]">
-                    No callback has been booked for this patient track yet. Use the planner above to keep follow-up explicit.
-                  </div>
-                )}
-              </div>
-            </section>
-          </aside>
-        </div>
+        </aside>
       </div>
 
       <MedicalFooter />
