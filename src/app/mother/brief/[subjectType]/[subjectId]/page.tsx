@@ -178,17 +178,17 @@ export default async function PreVisitBriefPage({
     supabase
       .from("appointments")
       .select("id, title, scheduled_at, notes")
+      .eq("mother_id", user.id)
       .eq("subject_type", subjectType)
       .eq("subject_id", subjectId)
+      .gte("scheduled_at", new Date().toISOString())
       .order("scheduled_at", { ascending: true })
       .limit(3),
   ])
 
   const checkinRows = (checkins || []) as CheckinRow[]
   const activeFlags = (flags || []) as FlagRow[]
-  const upcomingAppointments = ((appointments || []) as AppointmentRow[]).filter(
-    appointment => appointment.scheduled_at >= new Date().toISOString()
-  )
+  const upcomingAppointments = (appointments || []) as AppointmentRow[]
   const latestCheckin = checkinRows[0] || null
   const flagSeverity = topSeverity(activeFlags)
 
