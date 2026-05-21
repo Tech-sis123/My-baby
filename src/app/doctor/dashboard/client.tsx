@@ -10,24 +10,18 @@ import {
   Activity,
   AlertTriangle,
   Bot,
-  Building2,
-  ClipboardList,
   Copy,
-  HeartPulse,
-  LayoutDashboard,
-  Link2,
   LogOut,
   RefreshCw,
   Settings,
   ShieldCheck,
   Siren,
   Stethoscope,
-  TimerReset,
   Users,
 } from "lucide-react"
 
-const DOCTOR_DASHBOARD_IMAGE =
-  "https://images.pexels.com/photos/19957220/pexels-photo-19957220.jpeg?auto=compress&cs=tinysrgb&w=1200"
+const DOCTOR_IMAGE =
+  "https://images.pexels.com/photos/19957220/pexels-photo-19957220.jpeg?auto=compress&cs=tinysrgb&w=800"
 
 interface Pregnancy {
   id: string
@@ -135,10 +129,8 @@ const demoRows: Row[] = [
   },
 ]
 
-function severityOrder(severity: Row["severity"]) {
-  if (severity === "red") return 0
-  if (severity === "yellow") return 1
-  return 2
+function severityOrder(s: Row["severity"]) {
+  return s === "red" ? 0 : s === "yellow" ? 1 : 2
 }
 
 function timeAgo(iso: string): string {
@@ -149,108 +141,55 @@ function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}d ago`
 }
 
-function severityLabel(severity: Row["severity"]) {
-  if (severity === "red") return "Immediate attention"
-  if (severity === "yellow") return "Review soon"
-  return "Stable"
+function severityLabel(s: Row["severity"]) {
+  return s === "red" ? "Immediate" : s === "yellow" ? "Review soon" : "Stable"
 }
 
-function severityBadge(severity: Row["severity"]) {
-  if (severity === "red") return "border-red-400/30 bg-red-500/12 text-red-100"
-  if (severity === "yellow") return "border-yellow-400/30 bg-yellow-500/12 text-yellow-100"
+function severityBadge(s: Row["severity"]) {
+  if (s === "red") return "border-red-400/30 bg-red-500/12 text-red-100"
+  if (s === "yellow") return "border-yellow-400/30 bg-yellow-500/12 text-yellow-100"
   return "border-emerald-400/30 bg-emerald-500/12 text-emerald-100"
 }
 
-function severityDot(severity: Row["severity"]) {
-  if (severity === "red") return "bg-red-400"
-  if (severity === "yellow") return "bg-yellow-400"
-  return "bg-emerald-400"
+function severityDot(s: Row["severity"]) {
+  return s === "red" ? "bg-red-400" : s === "yellow" ? "bg-yellow-400" : "bg-emerald-400"
 }
 
-function QueueCard({ row, compact = false }: { row: Row; compact?: boolean }) {
+function TriageCard({ row }: { row: Row }) {
   const shell = (
-    <div className="rounded-[1.55rem] border border-[var(--border)] bg-[rgba(255,248,239,0.08)] p-4 transition hover:border-[rgba(201,139,88,0.34)]">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className={`h-2.5 w-2.5 rounded-full ${severityDot(row.severity)}`} />
-            <span className="text-lg font-semibold text-white">{row.motherName}</span>
+    <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-3.5 transition hover:border-[rgba(201,139,88,0.3)]">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className={`h-2 w-2 shrink-0 rounded-full ${severityDot(row.severity)}`} />
+            <span className="truncate text-sm font-semibold text-white">{row.motherName}</span>
           </div>
-          <p className="mt-1.5 text-sm leading-6 text-[var(--muted-foreground)]">
-            {row.subjectType === "pregnancy" ? "Pregnancy track" : "Baby track"} · {row.stage}
-          </p>
+          <p className="mt-0.5 truncate text-xs text-[var(--muted-foreground)]">{row.stage}</p>
         </div>
-        <span className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] ${severityBadge(row.severity)}`}>
+        <span
+          className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] ${severityBadge(row.severity)}`}
+        >
           {severityLabel(row.severity)}
         </span>
       </div>
 
-      <div className="mt-4 rounded-[1.2rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(57,46,39,0.5)] p-3.5">
-        <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted-foreground)]">Priority note</p>
-        <p className="mt-2 text-sm leading-6 text-white">
-          {row.topFlag?.message || "No active warning signs. Continue routine follow-up."}
+      {row.topFlag && (
+        <p className="mt-2.5 rounded-lg border border-[rgba(255,255,255,0.07)] bg-[rgba(43,35,29,0.5)] px-2.5 py-2 text-xs leading-5 text-white">
+          {row.topFlag.message}
         </p>
-      </div>
-
-      {compact ? (
-        <div className="mt-3 flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-          <span>{row.lastCheckin ? `Updated ${timeAgo(row.lastCheckin)}` : "Awaiting first check-in"}</span>
-          <span>{row.subjectType === "pregnancy" ? "Preg" : "Baby"}</span>
-        </div>
-      ) : (
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-[1.1rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-3.5">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Last update</p>
-            <p className="mt-2 text-sm font-medium text-white">
-              {row.lastCheckin ? timeAgo(row.lastCheckin) : "Awaiting first check-in"}
-            </p>
-          </div>
-          <div className="rounded-[1.1rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-3.5">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Care track</p>
-            <p className="mt-2 text-sm font-medium text-white">
-              {row.subjectType === "pregnancy" ? "Pregnancy monitoring" : "Baby monitoring"}
-            </p>
-          </div>
-          <div className="rounded-[1.1rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-3.5">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Case status</p>
-            <p className="mt-2 text-sm font-medium text-white">{severityLabel(row.severity)}</p>
-          </div>
-        </div>
       )}
+
+      <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
+        {row.lastCheckin ? timeAgo(row.lastCheckin) : "Awaiting first check-in"}
+      </p>
     </div>
   )
 
   if (row.isDemo) return <div>{shell}</div>
-
   return (
     <Link href={`/doctor/patient/${row.subjectType}/${row.subjectId}`} className="block">
       {shell}
     </Link>
-  )
-}
-
-function MetricCard({
-  label,
-  value,
-  note,
-  accent,
-  icon,
-}: {
-  label: string
-  value: string | number
-  note: string
-  accent: string
-  icon: React.ReactNode
-}) {
-  return (
-    <div className={`rounded-[1.4rem] border p-4 ${accent}`}>
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs uppercase tracking-[0.22em]">{label}</p>
-        {icon}
-      </div>
-      <p className="mt-3 text-3xl font-semibold text-white">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{note}</p>
-    </div>
   )
 }
 
@@ -272,7 +211,10 @@ export function DoctorDashboardClient({
   const supabase = createClient()
 
   useEffect(() => {
-    const allSubjectIds = [...pregnancies.map(pregnancy => pregnancy.id), ...babyProfiles.map(child => child.id)]
+    const allSubjectIds = [
+      ...pregnancies.map(p => p.id),
+      ...babyProfiles.map(c => c.id),
+    ]
 
     const flagSub = supabase
       .channel("doctor-flags")
@@ -288,14 +230,18 @@ export function DoctorDashboardClient({
 
     const checkinSub = supabase
       .channel("doctor-checkins")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "checkins" }, payload => {
-        const checkin = payload.new as { subject_id: string; created_at: string }
-        if (allSubjectIds.includes(checkin.subject_id)) {
-          setLastCheckins(prev => ({ ...prev, [checkin.subject_id]: checkin.created_at }))
-          setRealtimePulse(true)
-          setTimeout(() => setRealtimePulse(false), 2200)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "checkins" },
+        payload => {
+          const checkin = payload.new as { subject_id: string; created_at: string }
+          if (allSubjectIds.includes(checkin.subject_id)) {
+            setLastCheckins(prev => ({ ...prev, [checkin.subject_id]: checkin.created_at }))
+            setRealtimePulse(true)
+            setTimeout(() => setRealtimePulse(false), 2200)
+          }
         }
-      })
+      )
       .subscribe()
 
     return () => {
@@ -304,44 +250,47 @@ export function DoctorDashboardClient({
     }
   }, [pregnancies, babyProfiles, supabase])
 
-  const flagsBySubject = flags.reduce((acc, flag) => {
-    if (!acc[flag.subject_id]) acc[flag.subject_id] = []
-    acc[flag.subject_id].push(flag)
-    return acc
-  }, {} as Record<string, Flag[]>)
+  const flagsBySubject = flags.reduce(
+    (acc, flag) => {
+      if (!acc[flag.subject_id]) acc[flag.subject_id] = []
+      acc[flag.subject_id].push(flag)
+      return acc
+    },
+    {} as Record<string, Flag[]>
+  )
 
   const getTopFlag = (subjectId: string): { flag: Flag | null; severity: Row["severity"] } => {
-    const subjectFlags = flagsBySubject[subjectId] || []
-    const red = subjectFlags.find(flag => flag.severity === "red")
+    const f = flagsBySubject[subjectId] || []
+    const red = f.find(x => x.severity === "red")
     if (red) return { flag: red, severity: "red" }
-    const yellow = subjectFlags.find(flag => flag.severity === "yellow")
+    const yellow = f.find(x => x.severity === "yellow")
     if (yellow) return { flag: yellow, severity: "yellow" }
     return { flag: null, severity: "green" }
   }
 
   const rows: Row[] = [
-    ...pregnancies.map(pregnancy => {
-      const { flag, severity } = getTopFlag(pregnancy.id)
+    ...pregnancies.map(p => {
+      const { flag, severity } = getTopFlag(p.id)
       return {
         subjectType: "pregnancy" as const,
-        subjectId: pregnancy.id,
-        motherId: pregnancy.mother_id,
-        motherName: pregnancy.profiles?.full_name || "Unknown",
-        stage: formatStage("pregnancy", { due_date: pregnancy.due_date }),
-        lastCheckin: lastCheckins[pregnancy.id] || null,
+        subjectId: p.id,
+        motherId: p.mother_id,
+        motherName: p.profiles?.full_name || "Unknown",
+        stage: formatStage("pregnancy", { due_date: p.due_date }),
+        lastCheckin: lastCheckins[p.id] || null,
         topFlag: flag,
         severity,
       }
     }),
-    ...babyProfiles.map(child => {
-      const { flag, severity } = getTopFlag(child.id)
+    ...babyProfiles.map(c => {
+      const { flag, severity } = getTopFlag(c.id)
       return {
         subjectType: "child" as const,
-        subjectId: child.id,
-        motherId: child.mother_id,
-        motherName: child.profiles?.full_name || "Unknown",
-        stage: formatStage("child", { birth_date: child.birth_date, name: child.name }),
-        lastCheckin: lastCheckins[child.id] || null,
+        subjectId: c.id,
+        motherId: c.mother_id,
+        motherName: c.profiles?.full_name || "Unknown",
+        stage: formatStage("child", { birth_date: c.birth_date, name: c.name }),
+        lastCheckin: lastCheckins[c.id] || null,
         topFlag: flag,
         severity,
       }
@@ -349,16 +298,15 @@ export function DoctorDashboardClient({
   ].sort((a, b) => severityOrder(a.severity) - severityOrder(b.severity))
 
   const displayRows = rows.length > 0 ? rows : demoRows
-  const redRows = displayRows.filter(row => row.severity === "red")
-  const yellowRows = displayRows.filter(row => row.severity === "yellow")
-  const greenRows = displayRows.filter(row => row.severity === "green")
-  const linkedMothers = new Set(displayRows.map(row => row.motherId)).size
-  const pregnancyCount = displayRows.filter(row => row.subjectType === "pregnancy").length
-  const babyCount = displayRows.filter(row => row.subjectType === "child").length
-  const firstCheckinPending = displayRows.filter(row => !row.lastCheckin).length
+  const redRows = displayRows.filter(r => r.severity === "red")
+  const yellowRows = displayRows.filter(r => r.severity === "yellow")
+  const greenRows = displayRows.filter(r => r.severity === "green")
+  const linkedMothers = new Set(displayRows.map(r => r.motherId)).size
+  const firstCheckinPending = displayRows.filter(r => !r.lastCheckin).length
+
   const recentFeed = [...displayRows]
-    .filter(row => row.lastCheckin)
-    .sort((a, b) => new Date(b.lastCheckin || 0).getTime() - new Date(a.lastCheckin || 0).getTime())
+    .filter(r => r.lastCheckin)
+    .sort((a, b) => new Date(b.lastCheckin!).getTime() - new Date(a.lastCheckin!).getTime())
     .slice(0, 5)
 
   async function signOut() {
@@ -374,308 +322,280 @@ export function DoctorDashboardClient({
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-[var(--border)] bg-[rgba(77,64,54,0.74)] px-4 py-4 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      {/* Header */}
+      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(43,37,31,0.92)] px-4 py-3 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(199,143,98,0.35)] bg-[rgba(199,143,98,0.12)] text-sm font-semibold uppercase tracking-[0.28em] text-[var(--foreground)]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(199,143,98,0.35)] bg-[rgba(199,143,98,0.12)] text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--foreground)]">
               MD
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-[var(--primary)]">Doctor dashboard</p>
-              <h1 className="mt-1 text-3xl font-semibold text-white">{doctorName}</h1>
+              <p className="text-base font-semibold text-white leading-none">{doctorName}</p>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--muted-foreground)]">
+                {specialty || "Doctor dashboard"}
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {realtimePulse ? (
-              <span className="flex items-center gap-1 rounded-full border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.1)] px-3 py-1 text-xs text-[var(--foreground)]">
-                <RefreshCw className="h-3 w-3 animate-spin" /> Live update
+          <div className="flex items-center gap-1">
+            {realtimePulse && (
+              <span className="mr-2 flex items-center gap-1 rounded-full border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.1)] px-2.5 py-1 text-xs text-[var(--foreground)]">
+                <RefreshCw className="h-3 w-3 animate-spin" /> Live
               </span>
-            ) : null}
+            )}
             <Link href="/doctor/ask">
               <Button variant="ghost" size="icon" aria-label="Doctor AI">
-                <Bot className="h-5 w-5" />
+                <Bot className="h-4.5 w-4.5" />
               </Button>
             </Link>
             <Link href="/doctor/settings">
               <Button variant="ghost" size="icon" aria-label="Settings">
-                <Settings className="h-5 w-5" />
+                <Settings className="h-4.5 w-4.5" />
               </Button>
             </Link>
             <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-4.5 w-4.5" />
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-7xl px-4 py-6">
-        <section className="panel-float overflow-hidden rounded-[2.25rem] border border-[var(--border)] bg-[rgba(73,60,51,0.76)] shadow-[0_24px_60px_rgba(0,0,0,0.18)]">
-          <div className="grid gap-0 xl:grid-cols-[1.15fr_0.85fr]">
-            <div className="p-6 sm:p-8">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(201,139,88,0.26)] bg-[rgba(201,139,88,0.1)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--foreground)]">
-                <LayoutDashboard className="h-3.5 w-3.5" /> Linked care command center
-              </div>
-
-              <h2 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight text-white sm:text-5xl">
-                A real working board for one doctor managing several linked mothers and babies.
-              </h2>
-
-              <div className="mt-4 flex flex-wrap gap-2 text-sm text-[var(--muted-foreground)]">
-                <span>{specialty || "Maternal care doctor"}</span>
-                {clinicName ? <span>· {clinicName}</span> : null}
-                <span>· Invite-code linkage active</span>
-              </div>
-
-              <p className="mt-5 max-w-3xl text-sm leading-7 text-[var(--muted-foreground)]">
-                Every linked account feeds into this board. Red cases rise first, yellow cases stay visible, and stable patients remain easy to monitor without crowding urgent review.
-              </p>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <MetricCard
-                  label="Linked mothers"
-                  value={linkedMothers}
-                  note="Unique mothers connected to your care network."
-                  accent="border-[var(--border)] bg-[rgba(255,248,239,0.08)]"
-                  icon={<Users className="h-4 w-4 text-[var(--foreground)]" />}
-                />
-                <MetricCard
-                  label="Critical queue"
-                  value={redRows.length}
-                  note="Cases that should be reviewed immediately."
-                  accent="border-red-400/25 bg-red-500/10 text-red-100"
-                  icon={<Siren className="h-4 w-4 text-red-200" />}
-                />
-                <MetricCard
-                  label="Review soon"
-                  value={yellowRows.length}
-                  note="Cases needing follow-up next."
-                  accent="border-yellow-400/25 bg-yellow-500/10 text-yellow-100"
-                  icon={<AlertTriangle className="h-4 w-4 text-yellow-100" />}
-                />
-                <MetricCard
-                  label="No first update"
-                  value={firstCheckinPending}
-                  note="Linked cases still waiting for a first check-in."
-                  accent="border-[var(--border)] bg-[rgba(255,248,239,0.08)]"
-                  icon={<TimerReset className="h-4 w-4 text-[var(--foreground)]" />}
-                />
-              </div>
+      <div className="mx-auto max-w-7xl px-4 py-6">
+        {/* Stats + invite bar */}
+        <section className="mb-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)]">
+          <div className="grid lg:grid-cols-[1fr_280px]">
+            {/* Stats */}
+            <div className="flex flex-wrap items-center gap-px divide-x divide-[var(--border)] p-0">
+              {[
+                {
+                  icon: <Users className="h-4 w-4" />,
+                  value: linkedMothers,
+                  label: "Linked mothers",
+                  accent: "",
+                },
+                {
+                  icon: <Siren className="h-4 w-4 text-red-300" />,
+                  value: redRows.length,
+                  label: "Critical",
+                  accent: redRows.length > 0 ? "text-red-200" : "",
+                },
+                {
+                  icon: <AlertTriangle className="h-4 w-4 text-yellow-300" />,
+                  value: yellowRows.length,
+                  label: "Review soon",
+                  accent: yellowRows.length > 0 ? "text-yellow-100" : "",
+                },
+                {
+                  icon: <ShieldCheck className="h-4 w-4 text-emerald-300" />,
+                  value: greenRows.length,
+                  label: "Stable",
+                  accent: "",
+                },
+                {
+                  icon: <Stethoscope className="h-4 w-4" />,
+                  value: firstCheckinPending,
+                  label: "Awaiting",
+                  accent: "",
+                },
+              ].map(stat => (
+                <div key={stat.label} className="flex flex-1 flex-col items-center px-5 py-4 min-w-[80px]">
+                  <div className="mb-1 text-[var(--muted-foreground)]">{stat.icon}</div>
+                  <p className={`text-2xl font-semibold text-white ${stat.accent}`}>{stat.value}</p>
+                  <p className="mt-0.5 text-[10px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
             </div>
 
-            <div className="relative min-h-[320px] border-t border-[var(--border)] xl:min-h-full xl:border-l xl:border-t-0">
+            {/* Invite code — image-backed panel */}
+            <div className="relative overflow-hidden border-t border-[var(--border)] lg:border-l lg:border-t-0">
               <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `linear-gradient(to top, rgba(58,46,38,0.78), rgba(58,46,38,0.14)), url(${DOCTOR_DASHBOARD_IMAGE})` }}
+                className="absolute inset-0 bg-cover bg-center opacity-30"
+                style={{ backgroundImage: `url(${DOCTOR_IMAGE})` }}
               />
-              <div className="relative flex h-full flex-col justify-between p-6">
-                <div className="self-end rounded-full border border-[rgba(255,248,239,0.18)] bg-[rgba(255,248,239,0.1)] px-3 py-1 text-xs uppercase tracking-[0.22em] text-white">
-                  {realtimePulse ? "Live updates" : "Triage ready"}
-                </div>
-
-                <div className="grid gap-3">
-                  <div className="rounded-[1.45rem] border border-[rgba(255,255,255,0.14)] bg-[rgba(42,34,28,0.62)] p-4 backdrop-blur">
-                    <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-[rgba(255,255,255,0.76)]">
-                      <Link2 className="h-4 w-4" /> Invite code
-                    </div>
-                    <p className="mt-3 text-2xl font-semibold text-white">{inviteCode || "Generate yours"}</p>
-                    <p className="mt-2 text-sm leading-6 text-[rgba(255,255,255,0.76)]">
-                      Use one code to connect multiple mothers and baby-care tracks back to your dashboard.
-                    </p>
-                    <div className="mt-4 flex gap-3">
-                      <Button onClick={copyCode} disabled={!inviteCode} className="flex-1">
-                        <Copy className="h-4 w-4" /> {copied ? "Copied" : "Copy code"}
-                      </Button>
-                      <Link href="/doctor/settings" className="flex-1">
-                        <Button variant="outline" className="w-full border-[rgba(255,255,255,0.16)] bg-transparent text-white">
-                          Settings
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[1.45rem] border border-[rgba(255,255,255,0.14)] bg-[rgba(42,34,28,0.62)] p-4 backdrop-blur">
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-[rgba(255,255,255,0.62)]">Pregnancy</p>
-                        <p className="mt-2 text-2xl font-semibold text-white">{pregnancyCount}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-[rgba(255,255,255,0.62)]">Baby</p>
-                        <p className="mt-2 text-2xl font-semibold text-white">{babyCount}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-[rgba(255,255,255,0.62)]">Stable</p>
-                        <p className="mt-2 text-2xl font-semibold text-white">{greenRows.length}</p>
-                      </div>
-                    </div>
-                  </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-[rgba(43,37,31,0.9)] to-[rgba(43,37,31,0.6)]" />
+              <div className="relative p-5">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
+                  Invite code
+                </p>
+                <p className="mt-1 text-2xl font-semibold tracking-[0.12em] text-white">
+                  {inviteCode || "—"}
+                </p>
+                <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                  {clinicName || "Share with patients to link their check-ins here."}
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={copyCode}
+                    disabled={!inviteCode}
+                    className="flex-1"
+                  >
+                    <Copy className="mr-1.5 h-3.5 w-3.5" />
+                    {copied ? "Copied!" : "Copy code"}
+                  </Button>
+                  <Link href="/doctor/settings">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-[rgba(255,255,255,0.16)] bg-transparent text-white"
+                    >
+                      Settings
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 2xl:grid-cols-[1.2fr_0.8fr]">
-          <section className="space-y-6">
-            <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-              <div className="flex flex-col gap-4 border-b border-[var(--border)] pb-5 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.26em] text-[var(--primary)]">Severity board</p>
-                  <h3 className="mt-2 text-3xl font-semibold text-white">Operational triage lanes</h3>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
-                    This is the main working area: urgent cases first, follow-up next, stable watchlist last.
+        <div className="grid gap-6 2xl:grid-cols-[1fr_280px]">
+          {/* Triage lanes — primary content */}
+          <section className="rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.26em] text-[var(--primary)]">
+                  Triage board
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold text-white">Patient queue</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                  {rows.length > 0 ? "Live" : "Demo"}
+                </span>
+                <Link href="/doctor/ask">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-[var(--border)] bg-transparent text-white"
+                  >
+                    <Stethoscope className="mr-1.5 h-3.5 w-3.5" /> Ask AI
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-3">
+              {/* Red lane */}
+              <div className="rounded-xl border border-red-400/20 bg-red-500/6 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Siren className="h-4 w-4 text-red-300" />
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">
+                    Red — immediate
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-xs uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
-                    {rows.length > 0 ? "Realtime board" : "Demo board"}
-                  </div>
-                  <Link href="/doctor/ask">
-                    <Button variant="outline" className="border-[var(--border)] bg-transparent text-white">
-                      <Stethoscope className="h-4 w-4" /> Ask AI
-                    </Button>
-                  </Link>
+                <div className="space-y-2">
+                  {redRows.length > 0 ? (
+                    redRows.map(row => <TriageCard key={`red-${row.subjectId}`} row={row} />)
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-red-300/20 bg-red-500/5 p-3 text-xs text-red-100/70">
+                      No red cases right now.
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-4 xl:grid-cols-3">
-                <div className="rounded-[1.6rem] border border-red-400/22 bg-red-500/8 p-4">
-                  <div className="flex items-center gap-2 text-red-200">
-                    <Siren className="h-4 w-4" />
-                    <p className="text-sm font-semibold uppercase tracking-[0.2em]">Red lane</p>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-red-100/90">Immediate attention and high-risk cases.</p>
-                  <div className="mt-4 space-y-3">
-                    {redRows.length > 0 ? redRows.map(row => (
-                      <QueueCard key={`red-${row.subjectId}`} row={row} compact />
-                    )) : (
-                      <div className="rounded-[1.35rem] border border-dashed border-red-300/25 bg-red-500/6 p-4 text-sm text-red-100/80">
-                        No red cases right now.
-                      </div>
-                    )}
-                  </div>
+              {/* Yellow lane */}
+              <div className="rounded-xl border border-yellow-400/20 bg-yellow-500/6 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-300" />
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-yellow-100">
+                    Yellow — review
+                  </p>
                 </div>
-
-                <div className="rounded-[1.6rem] border border-yellow-400/22 bg-yellow-500/8 p-4">
-                  <div className="flex items-center gap-2 text-yellow-100">
-                    <AlertTriangle className="h-4 w-4" />
-                    <p className="text-sm font-semibold uppercase tracking-[0.2em]">Yellow lane</p>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-yellow-100/90">Review soon and keep visible.</p>
-                  <div className="mt-4 space-y-3">
-                    {yellowRows.length > 0 ? yellowRows.map(row => (
-                      <QueueCard key={`yellow-${row.subjectId}`} row={row} compact />
-                    )) : (
-                      <div className="rounded-[1.35rem] border border-dashed border-yellow-300/25 bg-yellow-500/6 p-4 text-sm text-yellow-100/80">
-                        No yellow cases right now.
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-[1.6rem] border border-emerald-400/22 bg-emerald-500/8 p-4">
-                  <div className="flex items-center gap-2 text-emerald-100">
-                    <ShieldCheck className="h-4 w-4" />
-                    <p className="text-sm font-semibold uppercase tracking-[0.2em]">Green lane</p>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-emerald-100/90">Stable cases and routine watchlist.</p>
-                  <div className="mt-4 space-y-3">
-                    {greenRows.length > 0 ? greenRows.map(row => (
-                      <QueueCard key={`green-${row.subjectId}`} row={row} compact />
-                    )) : (
-                      <div className="rounded-[1.35rem] border border-dashed border-emerald-300/25 bg-emerald-500/6 p-4 text-sm text-emerald-100/80">
-                        No stable cases yet.
-                      </div>
-                    )}
-                  </div>
+                <div className="space-y-2">
+                  {yellowRows.length > 0 ? (
+                    yellowRows.map(row => (
+                      <TriageCard key={`yellow-${row.subjectId}`} row={row} />
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-yellow-300/20 bg-yellow-500/5 p-3 text-xs text-yellow-100/70">
+                      No yellow cases right now.
+                    </div>
+                  )}
                 </div>
               </div>
-            </section>
 
-            <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                <ClipboardList className="h-4 w-4" /> Full patient queue
+              {/* Green lane */}
+              <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/6 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-100">
+                    Green — stable
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {greenRows.length > 0 ? (
+                    greenRows.map(row => (
+                      <TriageCard key={`green-${row.subjectId}`} row={row} />
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-emerald-300/20 bg-emerald-500/5 p-3 text-xs text-emerald-100/70">
+                      No stable cases yet.
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="mt-5 grid gap-4">
-                {displayRows.map(row => (
-                  <QueueCard key={`full-${row.subjectId}`} row={row} />
-                ))}
-              </div>
-            </section>
+            </div>
           </section>
 
-          <aside className="space-y-6">
-            <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                <Activity className="h-4 w-4" /> Network activity
-              </div>
+          {/* Sidebar — network activity */}
+          <aside className="space-y-4">
+            <section className="rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5">
+              <p className="mb-4 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+                <Activity className="h-3.5 w-3.5" /> Recent updates
+              </p>
+
               {recentFeed.length > 0 ? (
-                <div className="mt-5 space-y-3">
+                <div className="space-y-2">
                   {recentFeed.map(row => (
-                    <div key={`recent-${row.subjectId}`} className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="font-semibold text-white">{row.motherName}</p>
-                          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                            {row.subjectType === "pregnancy" ? "Pregnancy" : "Baby care"} · {row.stage}
-                          </p>
-                        </div>
-                        <span className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] ${severityBadge(row.severity)}`}>
+                    <Link
+                      key={`feed-${row.subjectId}`}
+                      href={row.isDemo ? "#" : `/doctor/patient/${row.subjectType}/${row.subjectId}`}
+                      className="block rounded-xl border border-[var(--border)] bg-[rgba(255,248,239,0.05)] px-3 py-2.5 transition hover:border-[rgba(201,139,88,0.3)]"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-sm font-semibold text-white">
+                          {row.motherName}
+                        </p>
+                        <span
+                          className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.18em] ${severityBadge(row.severity)}`}
+                        >
                           {severityLabel(row.severity)}
                         </span>
                       </div>
-                      <p className="mt-3 text-sm text-white">
-                        {row.lastCheckin ? `Updated ${timeAgo(row.lastCheckin)}` : "Awaiting first check-in"}
+                      <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">
+                        {row.stage} · {row.lastCheckin ? timeAgo(row.lastCheckin) : "—"}
                       </p>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (
-                <div className="mt-5 rounded-[1.35rem] border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4 text-sm leading-6 text-[var(--muted-foreground)]">
+                <div className="rounded-xl border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-4 text-sm text-[var(--muted-foreground)]">
                   No recent activity yet.
                 </div>
               )}
             </section>
 
-            <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                <HeartPulse className="h-4 w-4" /> Referral workflow
-              </div>
-              <div className="mt-5 space-y-3">
-                <div className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Step 1</p>
-                  <p className="mt-2 text-sm leading-6 text-white">Share your invite code with mothers you want linked to your board.</p>
-                </div>
-                <div className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Step 2</p>
-                  <p className="mt-2 text-sm leading-6 text-white">They enter the code during onboarding or later from their dashboard.</p>
-                </div>
-                <div className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Step 3</p>
-                  <p className="mt-2 text-sm leading-6 text-white">Their check-ins, red flags, and baby or pregnancy updates appear here automatically.</p>
-                </div>
-              </div>
-            </section>
-
-            <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                <Building2 className="h-4 w-4" /> Practice snapshot
-              </div>
-              <div className="mt-5 grid gap-3">
-                <div className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Doctor</p>
-                  <p className="mt-2 text-sm font-medium text-white">{doctorName}</p>
-                </div>
-                <div className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Specialty</p>
-                  <p className="mt-2 text-sm font-medium text-white">{specialty || "Maternal and child care"}</p>
-                </div>
-                <div className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.06)] p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Clinic</p>
-                  <p className="mt-2 text-sm font-medium text-white">{clinicName || "Set in doctor settings"}</p>
-                </div>
-              </div>
+            {/* Quick nav */}
+            <section className="space-y-2 rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
+              <Link href="/doctor/ask">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)] text-white"
+                >
+                  <Bot className="mr-2 h-4 w-4" /> Ask AI about a case
+                </Button>
+              </Link>
+              <Link href="/doctor/settings">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start border-[var(--border)] bg-transparent text-white"
+                >
+                  <Settings className="mr-2 h-4 w-4" /> Manage referral code
+                </Button>
+              </Link>
             </section>
           </aside>
         </div>

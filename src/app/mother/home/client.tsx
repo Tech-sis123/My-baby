@@ -1,6 +1,5 @@
 "use client"
 
-import type { ReactNode } from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -8,31 +7,22 @@ import { signOutAndRedirect } from "@/lib/auth-client"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
 import { MedicalFooter } from "@/components/medical-footer"
 import { formatStage, getGestationalWeek, getBabyAgeDays, SEVERITY_DOT } from "@/lib/utils"
 import { getPregnancyTip, getBabyTip } from "@/lib/tips"
 import type { Pregnancy, Child, Appointment, Flag } from "@/lib/supabase/types"
 import {
-  Activity,
   BellRing,
-  BookOpen,
   Calendar,
   ChevronRight,
-  Clock3,
-  HeartPulse,
   Link2,
   LogOut,
   MessageCircle,
   Plus,
-  Route,
-  ShieldCheck,
-  Sparkles,
-  Stethoscope,
 } from "lucide-react"
 
-const MOTHER_DASHBOARD_IMAGE =
-  "https://images.pexels.com/photos/35136012/pexels-photo-35136012.jpeg?auto=compress&cs=tinysrgb&w=1200"
+const MOTHER_IMAGE =
+  "https://images.pexels.com/photos/35136012/pexels-photo-35136012.jpeg?auto=compress&cs=tinysrgb&w=800"
 
 interface Props {
   profileName: string
@@ -52,7 +42,13 @@ function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}d ago`
 }
 
-function LinkDoctorInline({ subjectType, subjectId }: { subjectType: "pregnancy" | "child"; subjectId: string }) {
+function LinkDoctorInline({
+  subjectType,
+  subjectId,
+}: {
+  subjectType: "pregnancy" | "child"
+  subjectId: string
+}) {
   const [code, setCode] = useState("")
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
@@ -61,16 +57,8 @@ function LinkDoctorInline({ subjectType, subjectId }: { subjectType: "pregnancy"
   const router = useRouter()
 
   async function linkDoctor() {
-    if (!code.trim()) {
-      setError("Enter the referral code first.")
-      return
-    }
-
-    if (code.trim().length < 4) {
-      setError("Referral code looks too short.")
-      return
-    }
-
+    if (!code.trim()) { setError("Enter the referral code first."); return }
+    if (code.trim().length < 4) { setError("Code looks too short."); return }
     setLoading(true)
     setError("")
     setSuccess("")
@@ -81,11 +69,7 @@ function LinkDoctorInline({ subjectType, subjectId }: { subjectType: "pregnancy"
       .eq("invite_code", code.trim().toUpperCase())
       .maybeSingle()
 
-    if (!doctor) {
-      setError("Referral code not found.")
-      setLoading(false)
-      return
-    }
+    if (!doctor) { setError("Referral code not found."); setLoading(false); return }
 
     const table = subjectType === "pregnancy" ? "pregnancies" : "children"
     const { error: updateError } = await supabase
@@ -93,13 +77,9 @@ function LinkDoctorInline({ subjectType, subjectId }: { subjectType: "pregnancy"
       .update({ linked_doctor_id: doctor.user_id })
       .eq("id", subjectId)
 
-    if (updateError) {
-      setError(updateError.message)
-      setLoading(false)
-      return
-    }
+    if (updateError) { setError(updateError.message); setLoading(false); return }
 
-    setSuccess("Doctor linked successfully.")
+    setSuccess("Doctor linked.")
     router.refresh()
   }
 
@@ -107,62 +87,36 @@ function LinkDoctorInline({ subjectType, subjectId }: { subjectType: "pregnancy"
     return (
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-full border border-[rgba(199,143,98,0.26)] bg-[rgba(199,143,98,0.12)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--foreground)] transition hover:border-[rgba(199,143,98,0.5)] hover:bg-[rgba(199,143,98,0.18)]"
+        className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(199,143,98,0.26)] bg-[rgba(199,143,98,0.1)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--foreground)] transition hover:border-[rgba(199,143,98,0.5)]"
       >
-        <Link2 className="h-3.5 w-3.5" /> Link to doctor
+        <Link2 className="h-3 w-3" /> Link to doctor
       </button>
     )
   }
 
   return (
-    <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(73,60,51,0.78)] p-3">
-      <div className="flex flex-col gap-2 sm:flex-row">
+    <div className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.9)] p-3">
+      <div className="flex gap-2">
         <Input
-          placeholder="Enter doctor referral code"
+          placeholder="Enter referral code"
           value={code}
           onChange={e => setCode(e.target.value.toUpperCase())}
-          className="flex-1 bg-[rgba(255,255,255,0.03)] uppercase tracking-[0.2em] text-white"
+          className="flex-1 bg-[rgba(255,255,255,0.04)] uppercase tracking-[0.18em] text-white text-sm"
           autoFocus
         />
         <Button size="sm" onClick={linkDoctor} disabled={loading}>
-          {loading ? "Linking..." : "Link"}
+          {loading ? "…" : "Link"}
         </Button>
       </div>
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <p className="text-xs text-[var(--muted-foreground)]">
-          Once linked, your doctor sees new check-ins on their dashboard.
-        </p>
+      <div className="mt-2 flex items-center justify-between">
+        <p className="text-xs text-[var(--muted-foreground)]">Doctor sees your check-ins in real time.</p>
         <button onClick={() => setOpen(false)} className="text-xs text-[var(--muted-foreground)] hover:text-white">
           Cancel
         </button>
       </div>
-      {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
-      {success && <p className="mt-2 text-xs text-emerald-300">{success}</p>}
+      {error && <p className="mt-1.5 text-xs text-red-300">{error}</p>}
+      {success && <p className="mt-1.5 text-xs text-emerald-300">{success}</p>}
     </div>
-  )
-}
-
-function SectionCard({
-  title,
-  subtitle,
-  accent,
-  children,
-}: {
-  title: string
-  subtitle: string
-  accent: string
-  children: ReactNode
-}) {
-  return (
-    <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5 shadow-[0_22px_54px_rgba(0,0,0,0.16)]">
-      <div className="mb-4 flex items-end justify-between gap-4">
-        <div>
-          <p className={`text-[11px] font-semibold uppercase tracking-[0.28em] ${accent}`}>{subtitle}</p>
-          <h2 className="mt-1 text-2xl font-semibold text-white">{title}</h2>
-        </div>
-      </div>
-      {children}
-    </section>
   )
 }
 
@@ -178,93 +132,55 @@ export function MotherHomeClient({
   const router = useRouter()
   const supabase = createClient()
 
-  const flagsBySubject = flags.reduce((acc, flag) => {
-    if (!acc[flag.subject_id]) acc[flag.subject_id] = []
-    acc[flag.subject_id].push(flag)
-    return acc
-  }, {} as Record<string, Flag[]>)
+  const flagsBySubject = flags.reduce(
+    (acc, flag) => {
+      if (!acc[flag.subject_id]) acc[flag.subject_id] = []
+      acc[flag.subject_id].push(flag)
+      return acc
+    },
+    {} as Record<string, Flag[]>
+  )
 
   const topFlag = (id: string) => {
-    const subjectFlags = flagsBySubject[id] || []
-    if (subjectFlags.find(flag => flag.severity === "red")) return "red"
-    if (subjectFlags.find(flag => flag.severity === "yellow")) return "yellow"
+    const f = flagsBySubject[id] || []
+    if (f.find(x => x.severity === "red")) return "red"
+    if (f.find(x => x.severity === "yellow")) return "yellow"
     return null
   }
 
   const topFlagMessage = (id: string) => {
-    const subjectFlags = flagsBySubject[id] || []
+    const f = flagsBySubject[id] || []
     return (
-      subjectFlags.find(flag => flag.severity === "red")?.message ||
-      subjectFlags.find(flag => flag.severity === "yellow")?.message ||
+      f.find(x => x.severity === "red")?.message ||
+      f.find(x => x.severity === "yellow")?.message ||
       null
     )
   }
 
-  const redFlags = flags.filter(flag => flag.severity === "red").length
-  const yellowFlags = flags.filter(flag => flag.severity === "yellow").length
+  const redFlags = flags.filter(f => f.severity === "red").length
+  const yellowFlags = flags.filter(f => f.severity === "yellow").length
   const totalProfiles = pregnancies.length + babyProfiles.length
-  const linkedSubjects = [...pregnancies, ...babyProfiles].filter(subject => subject.linked_doctor_id).length
-  const firstCheckinPending = [...pregnancies, ...babyProfiles].filter(subject => !lastCheckins[subject.id]).length
-  const pendingLinkage = totalProfiles - linkedSubjects
+  const linkedSubjects = [...pregnancies, ...babyProfiles].filter(s => s.linked_doctor_id).length
   const hasPregnancy = pregnancies.length > 0
   const hasBaby = babyProfiles.length > 0
-  const careJourney = [
-    {
-      title: "Keep the right care mode active",
-      body: hasPregnancy && hasBaby
-        ? "Both pregnancy and baby journeys are active, so this dashboard should keep them separate while still showing them together."
-        : hasPregnancy
-          ? "Pregnancy support should stay first until you add a baby profile or close this journey."
-          : hasBaby
-            ? "Baby care should stay first and not get mixed with pregnancy prompts."
-            : "The dashboard becomes more useful after you add your first pregnancy or baby profile.",
-    },
-    {
-      title: "Check in consistently",
-      body: firstCheckinPending > 0
-        ? `You still have ${firstCheckinPending} care track${firstCheckinPending > 1 ? "s" : ""} waiting for a first check-in.`
-        : "Your active care tracks already have check-in history, which means alerts and summaries can stay more accurate.",
-    },
-    {
-      title: "Keep visits and doctor linkage visible",
-      body: linkedSubjects > 0
-        ? "Some of your care tracks are already linked to a doctor, so new check-ins can flow into the doctor dashboard."
-        : "If you have a doctor referral code, linking it here makes follow-up and prioritization easier on both sides.",
-    },
-  ]
-  const recentActivity = [
-    ...pregnancies.map(pregnancy => ({
-      id: pregnancy.id,
-      title: formatStage("pregnancy", { due_date: pregnancy.due_date }),
-      category: "Pregnancy track",
-      timestamp: lastCheckins[pregnancy.id] || null,
-      note: topFlagMessage(pregnancy.id) || "No urgent pregnancy note is open right now.",
-      href: `/mother/checkin/pregnancy/${pregnancy.id}`,
-    })),
-    ...babyProfiles.map(child => ({
-      id: child.id,
-      title: formatStage("child", { birth_date: child.birth_date, name: child.name }),
-      category: "Baby track",
-      timestamp: lastCheckins[child.id] || null,
-      note: topFlagMessage(child.id) || "No urgent baby-care note is open right now.",
-      href: `/mother/checkin/child/${child.id}`,
-    })),
-  ]
-    .sort((a, b) => {
-      if (!a.timestamp && !b.timestamp) return 0
-      if (!a.timestamp) return 1
-      if (!b.timestamp) return -1
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    })
-    .slice(0, 6)
-  const mode = hasPregnancy && hasBaby ? "Dual care mode" : hasPregnancy ? "Pregnancy mode" : hasBaby ? "Baby care mode" : "Start your care journey"
-  const overview = hasPregnancy && hasBaby
-    ? "Your dashboard is tracking both your pregnancy and your baby."
-    : hasPregnancy
-      ? "Everything here is focused on your pregnancy right now."
-      : hasBaby
-        ? "Everything here is focused on your baby's care right now."
-        : "Add your first pregnancy or baby to unlock check-ins, quick tips, and doctor linking."
+
+  const modeLabel =
+    hasPregnancy && hasBaby
+      ? "Dual care"
+      : hasPregnancy
+        ? "Pregnancy"
+        : hasBaby
+          ? "Baby care"
+          : "Setup"
+
+  const overview =
+    hasPregnancy && hasBaby
+      ? "Tracking both your pregnancy and your baby."
+      : hasPregnancy
+        ? "Focused on your pregnancy."
+        : hasBaby
+          ? "Focused on your baby's care."
+          : "Add your first profile to unlock check-ins, tips, and doctor linking."
 
   async function handleSignOut() {
     await signOutAndRedirect(supabase, "/login?role=mother")
@@ -272,521 +188,469 @@ export function MotherHomeClient({
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-[var(--border)] bg-[rgba(77,64,54,0.74)] px-4 py-4 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
+      {/* Sticky header */}
+      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(43,37,31,0.92)] px-4 py-3 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(199,143,98,0.35)] bg-[rgba(199,143,98,0.12)] text-sm font-semibold uppercase tracking-[0.28em] text-[var(--foreground)]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(199,143,98,0.35)] bg-[rgba(199,143,98,0.12)] text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--foreground)]">
               MB
             </div>
             <div>
-              <p className="font-display text-2xl font-semibold text-white">My Baby Care Desk</p>
-              <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted-foreground)]">{mode}</p>
+              <p className="text-base font-semibold text-white leading-none">My Baby</p>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--muted-foreground)]">
+                {modeLabel} mode
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Link href="/mother/ask" prefetch={false}>
               <Button variant="ghost" size="icon" aria-label="Health assistant">
-                <MessageCircle className="h-5 w-5" />
+                <MessageCircle className="h-4.5 w-4.5" />
               </Button>
             </Link>
             <Button variant="ghost" size="icon" onClick={handleSignOut} aria-label="Sign out">
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-4.5 w-4.5" />
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[1.18fr_0.82fr]">
-        <div className="space-y-6">
-          <section className="overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[rgba(19,20,23,0.92)] shadow-[0_34px_90px_rgba(0,0,0,0.26)]">
-            <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-              <div className="p-6 sm:p-8">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.1)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--foreground)]">
-                  <Sparkles className="h-3.5 w-3.5" /> Personal care dashboard
-                </div>
-                <h1 className="mt-5 max-w-xl text-4xl font-semibold tracking-[-0.03em] text-white sm:text-5xl">
-                  {profileName}
-                </h1>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">{overview}</p>
-                {email && (
-                  <p className="mt-4 text-xs uppercase tracking-[0.24em] text-[var(--muted-foreground)]">{email}</p>
-                )}
-
-                <div className="mt-8 grid gap-3 sm:grid-cols-4">
-                  <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Care profiles</p>
-                    <p className="mt-3 text-3xl font-semibold text-white">{totalProfiles}</p>
-                  </div>
-                  <div className="rounded-[1.4rem] border border-red-400/20 bg-red-500/8 p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-red-200">Needs attention</p>
-                    <p className="mt-3 text-3xl font-semibold text-white">{redFlags + yellowFlags}</p>
-                  </div>
-                  <div className="rounded-[1.4rem] border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.1)] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--foreground)]">Linked to doctor</p>
-                    <p className="mt-3 text-3xl font-semibold text-white">{linkedSubjects}</p>
-                  </div>
-                  <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">First check-ins due</p>
-                    <p className="mt-3 text-3xl font-semibold text-white">{firstCheckinPending}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative min-h-[280px] border-t border-[var(--border)] lg:min-h-full lg:border-l lg:border-t-0">
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${MOTHER_DASHBOARD_IMAGE})` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[rgba(50,40,33,0.9)] via-[rgba(50,40,33,0.32)] to-transparent" />
-                <div className="relative flex h-full flex-col justify-end p-6">
-                  <div className="max-w-xs rounded-[1.4rem] border border-[rgba(255,255,255,0.14)] bg-[rgba(12,13,16,0.62)] p-4 backdrop-blur">
-                    <p className="text-[11px] uppercase tracking-[0.26em] text-[rgba(243,238,230,0.72)]">Focused context</p>
-                    <p className="mt-2 text-sm leading-6 text-white">
-                      Suggestions, check-ins, and reminders are supposed to follow your current care mode instead of mixing pregnancy and baby advice together.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {pregnancies.length === 0 && babyProfiles.length === 0 && (
-            <SectionCard title="Build your dashboard" subtitle="First step" accent="text-[var(--primary)]">
-              <p className="mb-5 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
-                Choose the experience that matches you now. If you have a baby, the dashboard should focus on baby care. If you are pregnant, it should focus on pregnancy only.
+      <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
+        {/* Greeting banner — image on right, text on left */}
+        <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)]">
+          <div className="grid lg:grid-cols-[1fr_260px]">
+            {/* Text side */}
+            <div className="p-6 sm:p-8">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--primary)]">
+                {modeLabel} mode
               </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Link href="/mother/onboarding?add=pregnancy" prefetch={false}>
-                  <Button variant="outline" className="w-full justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
-                    Add pregnancy <Plus className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/mother/onboarding?add=baby" prefetch={false}>
-                  <Button variant="outline" className="w-full justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
-                    Add baby <Plus className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </SectionCard>
-          )}
-
-          {pregnancies.length > 0 && babyProfiles.length === 0 && (
-            <SectionCard title="Need baby care later?" subtitle="Optional next step" accent="text-[var(--primary)]">
-              <p className="mb-5 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
-                If you have already delivered, add the baby profile here so baby tips, baby check-ins, and baby appointments stay separate from pregnancy tracking.
-              </p>
-              <Link href="/mother/onboarding?add=baby" prefetch={false}>
-                <Button variant="outline" className="justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
-                  Add baby profile <Plus className="h-4 w-4" />
-                </Button>
-              </Link>
-            </SectionCard>
-          )}
-
-          {babyProfiles.length > 0 && pregnancies.length === 0 && (
-            <SectionCard title="Need pregnancy tracking too?" subtitle="Optional next step" accent="text-[var(--primary)]">
-              <p className="mb-5 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
-                If you are also pregnant, add that journey separately so pregnancy prompts and baby prompts do not get mixed together.
-              </p>
-              <Link href="/mother/onboarding?add=pregnancy" prefetch={false}>
-                <Button variant="outline" className="justify-between border-[var(--border)] bg-[rgba(255,255,255,0.03)] text-white">
-                  Add pregnancy profile <Plus className="h-4 w-4" />
-                </Button>
-              </Link>
-            </SectionCard>
-          )}
-
-          {pregnancies.length > 0 && (
-            <SectionCard title="Pregnancy focus" subtitle="Mother health" accent="text-[var(--primary)]">
-              <div className="grid gap-4 xl:grid-cols-2">
-                {pregnancies.map((pregnancy, index) => {
-                  const week = getGestationalWeek(pregnancy.due_date)
-                  const stage = formatStage("pregnancy", { due_date: pregnancy.due_date })
-                  const tip = getPregnancyTip(week)
-                  const last = lastCheckins[pregnancy.id]
-                  const flag = topFlag(pregnancy.id)
-                  const flagMsg = topFlagMessage(pregnancy.id)
-
-                  return (
-                    <Card key={pregnancy.id} className="overflow-hidden border-[var(--border)] bg-[rgba(78,64,54,0.74)]">
-                      <div className="h-1 bg-gradient-to-r from-[rgba(199,143,98,0.92)] via-[rgba(242,177,121,0.82)] to-[rgba(249,214,158,0.76)]" />
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <div className="flex items-center gap-3">
-                              <span className="rounded-full border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.1)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--foreground)]">
-                                Case {index + 1}
-                              </span>
-                              <span className="text-xl font-semibold text-white">{stage}</span>
-                              {flag && <span className={`h-2.5 w-2.5 rounded-full ${SEVERITY_DOT[flag]}`} />}
-                              {pregnancy.linked_doctor_id ? (
-                                <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-100">
-                                  Doctor linked
-                                </span>
-                              ) : null}
-                            </div>
-                            <p className="mt-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-                              {last ? `Last check-in ${timeAgo(last)}` : "No check-ins yet"}
-                            </p>
-                          </div>
-                          <Link href={`/mother/checkin/pregnancy/${pregnancy.id}`} prefetch={false}>
-                            <Button size="sm">Check in</Button>
-                          </Link>
-                        </div>
-
-                        {flagMsg && (
-                          <div
-                            className={`mt-4 rounded-[1.3rem] border px-4 py-3 text-sm ${
-                              flag === "red"
-                                ? "border-red-400/25 bg-red-500/10 text-red-100"
-                                : "border-yellow-400/25 bg-yellow-500/10 text-yellow-100"
-                            }`}
-                          >
-                            {flagMsg}
-                          </div>
-                        )}
-
-                        <div className="mt-4 grid gap-3 sm:grid-cols-[1.15fr_0.85fr]">
-                          <div className="rounded-[1.3rem] border border-[rgba(199,143,98,0.2)] bg-[rgba(199,143,98,0.08)] p-4">
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--foreground)]">Quick health tip</p>
-                            <p className="mt-2 text-sm leading-6 text-white">{tip}</p>
-                          </div>
-                          <div className="rounded-[1.3rem] border border-[var(--border)] bg-[rgba(255,248,239,0.08)] p-4">
-                            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Suggested next step</p>
-                            <p className="mt-2 text-sm leading-6 text-white">
-                              {last
-                                ? "Keep pregnancy notes updated before your next visit so the AI brief stays relevant to this stage."
-                                : "Start the first pregnancy check-in so this track can begin showing real alerts, summaries, and visit context."}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                          <Link href={`/mother/delivery/${pregnancy.id}`} prefetch={false} className="text-[var(--foreground)] hover:text-white">
-                            I had my baby
-                          </Link>
-                          <Link href={`/mother/brief/pregnancy/${pregnancy.id}`} prefetch={false} className="text-[var(--muted-foreground)] hover:text-white">
-                            Pre-visit brief
-                          </Link>
-                          <button
-                            onClick={async () => {
-                              if (!confirm("Mark this pregnancy as ended?")) return
-                              await supabase
-                                .from("pregnancies")
-                                .update({ status: "ended", ended_at: new Date().toISOString() })
-                                .eq("id", pregnancy.id)
-                              router.refresh()
-                            }}
-                            className="text-[var(--muted-foreground)] hover:text-white"
-                          >
-                            Update (loss)
-                          </button>
-                        </div>
-
-                        {!pregnancy.linked_doctor_id && (
-                          <div className="mt-4">
-                            <LinkDoctorInline subjectType="pregnancy" subjectId={pregnancy.id} />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
-            </SectionCard>
-          )}
-
-          {babyProfiles.length > 0 && (
-            <SectionCard title="Baby focus" subtitle="Child health" accent="text-[var(--primary)]">
-              <div className="grid gap-4 xl:grid-cols-2">
-                {babyProfiles.map((child, index) => {
-                  const ageDays = getBabyAgeDays(child.birth_date)
-                  const stage = formatStage("child", { birth_date: child.birth_date, name: child.name })
-                  const tip = getBabyTip(ageDays)
-                  const last = lastCheckins[child.id]
-                  const flag = topFlag(child.id)
-                  const flagMsg = topFlagMessage(child.id)
-
-                  return (
-                    <Card key={child.id} className="overflow-hidden border-[var(--border)] bg-[rgba(78,64,54,0.74)]">
-                      <div className="h-1 bg-gradient-to-r from-[rgba(240,178,161,0.88)] via-[rgba(199,143,98,0.9)] to-[rgba(248,225,178,0.8)]" />
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <div className="flex items-center gap-3">
-                              <span className="rounded-full border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.1)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--foreground)]">
-                                Child {index + 1}
-                              </span>
-                              <span className="text-xl font-semibold text-white">{stage}</span>
-                              {flag && <span className={`h-2.5 w-2.5 rounded-full ${SEVERITY_DOT[flag]}`} />}
-                              {child.linked_doctor_id ? (
-                                <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-100">
-                                  Doctor linked
-                                </span>
-                              ) : null}
-                            </div>
-                            <p className="mt-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-                              {last ? `Last check-in ${timeAgo(last)}` : "No check-ins yet"}
-                            </p>
-                          </div>
-                          <Link href={`/mother/checkin/child/${child.id}`} prefetch={false}>
-                            <Button size="sm">Check in</Button>
-                          </Link>
-                        </div>
-
-                        {flagMsg && (
-                          <div
-                            className={`mt-4 rounded-[1.3rem] border px-4 py-3 text-sm ${
-                              flag === "red"
-                                ? "border-red-400/25 bg-red-500/10 text-red-100"
-                                : "border-yellow-400/25 bg-yellow-500/10 text-yellow-100"
-                            }`}
-                          >
-                            {flagMsg}
-                          </div>
-                        )}
-
-                        <div className="mt-4 grid gap-3 sm:grid-cols-[1.15fr_0.85fr]">
-                          <div className="rounded-[1.3rem] border border-[rgba(199,143,98,0.2)] bg-[rgba(199,143,98,0.08)] p-4">
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--foreground)]">Quick health tip</p>
-                            <p className="mt-2 text-sm leading-6 text-white">{tip}</p>
-                          </div>
-                          <div className="rounded-[1.3rem] border border-[var(--border)] bg-[rgba(255,248,239,0.08)] p-4">
-                            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Care context</p>
-                            <p className="mt-2 text-sm leading-6 text-white">
-                              {last
-                                ? "Baby check-ins, tips, and AI prompts should stay scoped to this child instead of mixing with pregnancy content."
-                                : "Start the first baby check-in so feeding, diapers, breathing, and visit summaries begin showing real context."}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                          <Link href={`/mother/brief/child/${child.id}`} prefetch={false} className="text-[var(--muted-foreground)] hover:text-white">
-                            Pre-visit brief
-                          </Link>
-                        </div>
-
-                        {!child.linked_doctor_id && (
-                          <div className="mt-4">
-                            <LinkDoctorInline subjectType="child" subjectId={child.id} />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
-            </SectionCard>
-          )}
-
-          <SectionCard title="Care journey map" subtitle="Long-view planning" accent="text-[var(--primary)]">
-            <div className="grid gap-4 xl:grid-cols-3">
-              {careJourney.map(item => (
-                <div key={item.title} className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--foreground)]">
-                    <Route className="h-4 w-4" /> Care step
-                  </div>
-                  <h3 className="mt-4 text-xl font-semibold text-white">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">{item.body}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-5 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-              <div className="rounded-[1.5rem] border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)] p-5">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--foreground)]">
-                  <BookOpen className="h-4 w-4" /> How to use this page
-                </div>
-                <p className="mt-4 text-sm leading-7 text-white">
-                  This dashboard should feel full because it is supposed to hold the whole care story in one place: pregnancy cards, baby cards, alerts, linked-doctor actions, appointments, quick tips, and the next thing you should do. Desktop should not feel empty.
+              <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">{profileName}</h1>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{overview}</p>
+              {email && (
+                <p className="mt-3 text-xs uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
+                  {email}
                 </p>
-              </div>
-              <div className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
-                  <Stethoscope className="h-4 w-4" /> Visit prep
+              )}
+
+              {/* Inline stats */}
+              <div className="mt-6 flex flex-wrap gap-4">
+                <div>
+                  <p className="text-2xl font-semibold text-white">{totalProfiles}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                    Profiles
+                  </p>
                 </div>
-                <p className="mt-4 text-sm leading-7 text-white">
-                  Use the pre-visit brief pages before appointments so your latest check-ins, notes, and alerts are already organized.
+                <div className="w-px bg-[var(--border)]" />
+                <div>
+                  <p className={`text-2xl font-semibold ${redFlags + yellowFlags > 0 ? "text-red-200" : "text-white"}`}>
+                    {redFlags + yellowFlags}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                    Alerts
+                  </p>
+                </div>
+                <div className="w-px bg-[var(--border)]" />
+                <div>
+                  <p className="text-2xl font-semibold text-white">{linkedSubjects}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                    Linked to doctor
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Image side — decorative, hidden on mobile */}
+            <div className="relative hidden overflow-hidden border-l border-[var(--border)] lg:block">
+              <div
+                className="absolute inset-0 bg-cover"
+                style={{
+                  backgroundImage: `url(${MOTHER_IMAGE})`,
+                  backgroundPosition: "center 18%",
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[rgba(73,60,51,0.7)] via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[rgba(43,37,31,0.6)] via-transparent to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[rgba(255,255,255,0.6)]">
+                  Daily care
+                </p>
+                <p className="mt-1 text-sm font-semibold text-white leading-snug">
+                  60 seconds to keep your doctor informed.
                 </p>
               </div>
             </div>
-          </SectionCard>
+          </div>
+        </section>
 
-          <SectionCard title="Recent care activity" subtitle="What changed recently" accent="text-[var(--primary)]">
-            {recentActivity.length > 0 ? (
-              <div className="grid gap-4 xl:grid-cols-2">
-                {recentActivity.map(item => (
-                  <Link key={item.id} href={item.href} prefetch={false} className="block">
-                    <div className="rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5 transition hover:border-[rgba(199,143,98,0.34)]">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-[var(--primary)]">
-                            <Activity className="h-4 w-4" /> {item.category}
-                          </div>
-                          <h3 className="mt-3 text-xl font-semibold text-white">{item.title}</h3>
-                        </div>
-                        <div className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
-                          {item.timestamp ? timeAgo(item.timestamp) : "No update yet"}
-                        </div>
-                      </div>
-                      <p className="mt-4 text-sm leading-6 text-[var(--muted-foreground)]">{item.note}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-[1.5rem] border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-5 text-sm leading-6 text-[var(--muted-foreground)]">
-                Once your care tracks start getting check-ins, this section will show the most recent activity across pregnancy and baby journeys.
-              </div>
-            )}
+        <div className="grid gap-6 lg:grid-cols-[1fr_288px]">
+          {/* ── Main content ── */}
+          <div className="space-y-6">
 
-            <div className="mt-5 grid gap-4 xl:grid-cols-3">
-              <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-                  <Clock3 className="h-4 w-4" /> Routine
-                </div>
-                <p className="mt-3 text-sm leading-6 text-white">Short, consistent check-ins make the dashboard more useful than occasional long updates.</p>
-              </div>
-              <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-                  <Calendar className="h-4 w-4" /> Planning
-                </div>
-                <p className="mt-3 text-sm leading-6 text-white">Appointments work better when they are attached to the correct pregnancy or baby profile.</p>
-              </div>
-              <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-                  <ShieldCheck className="h-4 w-4" /> Linkage
-                </div>
-                <p className="mt-3 text-sm leading-6 text-white">Doctor linkage matters most when you want your updates to show up on the doctor side in real time.</p>
-              </div>
-            </div>
-          </SectionCard>
-        </div>
-
-        <aside className="space-y-6">
-          <section className="panel-float overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)]">
-            <div
-              className="h-56 bg-cover bg-center"
-              style={{ backgroundImage: `linear-gradient(to top, rgba(60,47,38,0.76), rgba(60,47,38,0.14)), url(${MOTHER_DASHBOARD_IMAGE})` }}
-            />
-            <div className="p-5">
-              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                <HeartPulse className="h-4 w-4" /> Dashboard signals
-              </div>
-              <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
-                This side of the dashboard stays dense on desktop so appointments, alerts, and support actions are visible without hiding everything in one panel.
-              </p>
-            </div>
-          </section>
-
-          <section className="rounded-[1.8rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5">
-            <div className="grid gap-3">
-              <div className="rounded-[1.4rem] border border-red-400/25 bg-red-500/10 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-red-200">Immediate attention</p>
-                <p className="mt-2 text-3xl font-semibold text-white">{redFlags}</p>
-              </div>
-              <div className="rounded-[1.4rem] border border-yellow-400/25 bg-yellow-500/10 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-yellow-100">Review soon</p>
-                <p className="mt-2 text-3xl font-semibold text-white">{yellowFlags}</p>
-              </div>
-              <div className="rounded-[1.4rem] border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.1)] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[var(--foreground)]">
-                  <ShieldCheck className="h-4 w-4" /> Doctor connection
-                </div>
-                <p className="mt-2 text-3xl font-semibold text-white">{linkedSubjects}</p>
-                <p className="mt-2 text-sm text-[var(--muted-foreground)]">Profiles currently linked to a doctor referral code.</p>
-              </div>
-              {pendingLinkage > 0 ? (
-                <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Still unlinked</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{pendingLinkage}</p>
-                  <p className="mt-2 text-sm text-[var(--muted-foreground)]">Care tracks that can still be connected to a doctor code.</p>
-                </div>
-              ) : null}
-            </div>
-          </section>
-
-          <section className="rounded-[1.8rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                <Calendar className="h-4 w-4" /> Upcoming appointments
-              </div>
-              <Link href="/mother/appointments" prefetch={false} className="text-sm text-[var(--foreground)] hover:text-white">
-                View all
-              </Link>
-            </div>
-
-            {appointments.length === 0 ? (
-              <Link
-                href="/mother/appointments"
-                prefetch={false}
-                className="mt-4 block rounded-[1.4rem] border border-dashed border-[var(--border)] p-4 text-sm leading-6 text-[var(--muted-foreground)] hover:border-[rgba(199,143,98,0.45)] hover:text-white"
-              >
-                No upcoming appointments yet. Add your next visit.
-              </Link>
-            ) : (
-              <div className="mt-4 space-y-3">
-                {appointments.map(appointment => (
-                  <div key={appointment.id} className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4">
-                    <p className="font-semibold text-white">{appointment.title}</p>
-                    <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                      {new Date(appointment.scheduled_at).toLocaleDateString("en-NG", {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="rounded-[1.8rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5">
-            {totalProfiles > 0 && (firstCheckinPending > 0 || appointments.length === 0) ? (
-              <div className="mb-5 rounded-[1.4rem] border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.08)] p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[var(--foreground)]">Next best step</p>
-                <p className="mt-2 text-sm leading-6 text-white">
-                  {firstCheckinPending > 0
-                    ? `${firstCheckinPending} care track${firstCheckinPending > 1 ? "s are" : " is"} still waiting for a first check-in.`
-                    : "Your next useful action is to schedule the next appointment so the dashboard has a clear follow-up plan."}
+            {/* Empty state */}
+            {totalProfiles === 0 && (
+              <section className="rounded-2xl border border-dashed border-[var(--border)] bg-[rgba(73,60,51,0.4)] p-10 text-center">
+                <p className="text-sm text-[var(--muted-foreground)] mb-5">
+                  Add your first care profile to unlock check-ins, tips, and doctor linking.
                 </p>
-              </div>
-            ) : null}
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-              <BellRing className="h-4 w-4" /> Check-ins and support
-            </div>
-            <div className="mt-4 space-y-3">
-              <Link href="/mother/ask" prefetch={false} className="block rounded-[1.4rem] border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)] p-4">
-                <p className="font-semibold text-white">Ask the AI assistant</p>
-                <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
-                  Get quick answers based on your current pregnancy or baby-care context.
-                </p>
-              </Link>
-              <Link href="/mother/appointments" prefetch={false} className="flex items-center justify-between rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4 text-sm text-white">
-                Schedule or manage appointments <ChevronRight className="h-4 w-4 text-[var(--muted-foreground)]" />
-              </Link>
-              <div className="rounded-[1.4rem] border border-[var(--border)] bg-[rgba(255,255,255,0.03)] p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Quick actions</p>
-                <div className="mt-3 grid gap-2">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Link href="/mother/onboarding?add=pregnancy" prefetch={false}>
-                    <Button variant="outline" className="w-full justify-between border-[var(--border)] bg-transparent text-white">
-                      Add pregnancy <Plus className="h-4 w-4" />
+                    <Button
+                      variant="outline"
+                      className="w-full border-[var(--border)] bg-transparent text-white sm:w-auto"
+                    >
+                      Add pregnancy <Plus className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                   <Link href="/mother/onboarding?add=baby" prefetch={false}>
-                    <Button variant="outline" className="w-full justify-between border-[var(--border)] bg-transparent text-white">
-                      Add baby <Plus className="h-4 w-4" />
+                    <Button
+                      variant="outline"
+                      className="w-full border-[var(--border)] bg-transparent text-white sm:w-auto"
+                    >
+                      Add baby <Plus className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
+              </section>
+            )}
+
+            {/* Pregnancy section */}
+            {pregnancies.length > 0 && (
+              <div>
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">
+                  Pregnancy
+                </p>
+                <div className="grid gap-4 xl:grid-cols-2">
+                  {pregnancies.map(pregnancy => {
+                    const week = getGestationalWeek(pregnancy.due_date)
+                    const stage = formatStage("pregnancy", { due_date: pregnancy.due_date })
+                    const tip = getPregnancyTip(week)
+                    const last = lastCheckins[pregnancy.id]
+                    const flag = topFlag(pregnancy.id)
+                    const flagMsg = topFlagMessage(pregnancy.id)
+
+                    return (
+                      <div
+                        key={pregnancy.id}
+                        className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(78,64,54,0.74)]"
+                      >
+                        <div className="h-[3px] bg-gradient-to-r from-[rgba(199,143,98,0.9)] via-[rgba(242,177,121,0.8)] to-[rgba(249,214,158,0.7)]" />
+                        <div className="p-5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xl font-semibold text-white">{stage}</span>
+                                {flag && (
+                                  <span className={`h-2 w-2 rounded-full ${SEVERITY_DOT[flag]}`} />
+                                )}
+                                {pregnancy.linked_doctor_id && (
+                                  <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-100">
+                                    Doctor linked
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                                {last ? `Last check-in ${timeAgo(last)}` : "No check-ins yet"}
+                              </p>
+                            </div>
+                            <Link
+                              href={`/mother/checkin/pregnancy/${pregnancy.id}`}
+                              prefetch={false}
+                            >
+                              <Button size="sm">Check in</Button>
+                            </Link>
+                          </div>
+
+                          {flagMsg && (
+                            <div
+                              className={`mt-3 rounded-xl border px-3 py-2.5 text-sm ${
+                                flag === "red"
+                                  ? "border-red-400/25 bg-red-500/10 text-red-100"
+                                  : "border-yellow-400/25 bg-yellow-500/10 text-yellow-100"
+                              }`}
+                            >
+                              {flagMsg}
+                            </div>
+                          )}
+
+                          <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
+                            {tip}
+                          </p>
+
+                          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                            <Link
+                              href={`/mother/delivery/${pregnancy.id}`}
+                              prefetch={false}
+                              className="text-[var(--foreground)] hover:text-white"
+                            >
+                              I had my baby
+                            </Link>
+                            <span className="text-[var(--border)]">·</span>
+                            <Link
+                              href={`/mother/brief/pregnancy/${pregnancy.id}`}
+                              prefetch={false}
+                              className="text-[var(--muted-foreground)] hover:text-white"
+                            >
+                              Pre-visit brief
+                            </Link>
+                            <span className="text-[var(--border)]">·</span>
+                            <button
+                              onClick={async () => {
+                                if (!confirm("Mark this pregnancy as ended?")) return
+                                await supabase
+                                  .from("pregnancies")
+                                  .update({
+                                    status: "ended",
+                                    ended_at: new Date().toISOString(),
+                                  })
+                                  .eq("id", pregnancy.id)
+                                router.refresh()
+                              }}
+                              className="text-[var(--muted-foreground)] hover:text-white"
+                            >
+                              Update (loss)
+                            </button>
+                          </div>
+
+                          {!pregnancy.linked_doctor_id && (
+                            <div className="mt-3">
+                              <LinkDoctorInline
+                                subjectType="pregnancy"
+                                subjectId={pregnancy.id}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {!hasBaby && (
+                  <Link
+                    href="/mother/onboarding?add=baby"
+                    prefetch={false}
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm text-[var(--muted-foreground)] hover:text-white"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add baby profile
+                  </Link>
+                )}
               </div>
-            </div>
-          </section>
-        </aside>
+            )}
+
+            {/* Baby section */}
+            {babyProfiles.length > 0 && (
+              <div>
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">
+                  Baby care
+                </p>
+                <div className="grid gap-4 xl:grid-cols-2">
+                  {babyProfiles.map(child => {
+                    const ageDays = getBabyAgeDays(child.birth_date)
+                    const stage = formatStage("child", {
+                      birth_date: child.birth_date,
+                      name: child.name,
+                    })
+                    const tip = getBabyTip(ageDays)
+                    const last = lastCheckins[child.id]
+                    const flag = topFlag(child.id)
+                    const flagMsg = topFlagMessage(child.id)
+
+                    return (
+                      <div
+                        key={child.id}
+                        className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(78,64,54,0.74)]"
+                      >
+                        <div className="h-[3px] bg-gradient-to-r from-[rgba(240,178,161,0.88)] via-[rgba(199,143,98,0.9)] to-[rgba(248,225,178,0.8)]" />
+                        <div className="p-5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xl font-semibold text-white">{stage}</span>
+                                {flag && (
+                                  <span className={`h-2 w-2 rounded-full ${SEVERITY_DOT[flag]}`} />
+                                )}
+                                {child.linked_doctor_id && (
+                                  <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-100">
+                                    Doctor linked
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                                {last ? `Last check-in ${timeAgo(last)}` : "No check-ins yet"}
+                              </p>
+                            </div>
+                            <Link href={`/mother/checkin/child/${child.id}`} prefetch={false}>
+                              <Button size="sm">Check in</Button>
+                            </Link>
+                          </div>
+
+                          {flagMsg && (
+                            <div
+                              className={`mt-3 rounded-xl border px-3 py-2.5 text-sm ${
+                                flag === "red"
+                                  ? "border-red-400/25 bg-red-500/10 text-red-100"
+                                  : "border-yellow-400/25 bg-yellow-500/10 text-yellow-100"
+                              }`}
+                            >
+                              {flagMsg}
+                            </div>
+                          )}
+
+                          <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
+                            {tip}
+                          </p>
+
+                          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                            <Link
+                              href={`/mother/brief/child/${child.id}`}
+                              prefetch={false}
+                              className="text-[var(--muted-foreground)] hover:text-white"
+                            >
+                              Pre-visit brief
+                            </Link>
+                          </div>
+
+                          {!child.linked_doctor_id && (
+                            <div className="mt-3">
+                              <LinkDoctorInline subjectType="child" subjectId={child.id} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {!hasPregnancy && (
+                  <Link
+                    href="/mother/onboarding?add=pregnancy"
+                    prefetch={false}
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm text-[var(--muted-foreground)] hover:text-white"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add pregnancy profile
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── Sidebar ── */}
+          <aside className="space-y-4">
+            {/* Alerts */}
+            {(redFlags > 0 || yellowFlags > 0) && (
+              <section className="rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
+                <p className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+                  <BellRing className="h-3.5 w-3.5" /> Alerts
+                </p>
+                <div className="space-y-2">
+                  {redFlags > 0 && (
+                    <div className="rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-red-200">
+                        Immediate
+                      </p>
+                      <p className="mt-1 text-2xl font-semibold text-white">{redFlags}</p>
+                    </div>
+                  )}
+                  {yellowFlags > 0 && (
+                    <div className="rounded-xl border border-yellow-400/25 bg-yellow-500/10 px-4 py-3">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-100">
+                        Review soon
+                      </p>
+                      <p className="mt-1 text-2xl font-semibold text-white">{yellowFlags}</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Upcoming appointments */}
+            <section className="rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+                  <Calendar className="h-3.5 w-3.5" /> Appointments
+                </p>
+                <Link
+                  href="/mother/appointments"
+                  prefetch={false}
+                  className="text-xs text-[var(--muted-foreground)] hover:text-white"
+                >
+                  View all
+                </Link>
+              </div>
+              {appointments.length === 0 ? (
+                <Link
+                  href="/mother/appointments"
+                  prefetch={false}
+                  className="block rounded-xl border border-dashed border-[var(--border)] p-3 text-sm text-[var(--muted-foreground)] hover:border-[rgba(199,143,98,0.4)] hover:text-white"
+                >
+                  No upcoming appointments. Add one →
+                </Link>
+              ) : (
+                <div className="space-y-2">
+                  {appointments.map(apt => (
+                    <div
+                      key={apt.id}
+                      className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.03)] px-3 py-2.5"
+                    >
+                      <p className="text-sm font-semibold text-white">{apt.title}</p>
+                      <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">
+                        {new Date(apt.scheduled_at).toLocaleDateString("en-NG", {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Quick actions */}
+            <section className="space-y-2 rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
+              <Link
+                href="/mother/ask"
+                prefetch={false}
+                className="block rounded-xl border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)] px-4 py-3 transition hover:border-[rgba(199,143,98,0.4)]"
+              >
+                <p className="text-sm font-semibold text-white">Ask AI assistant</p>
+                <p className="mt-0.5 text-xs leading-5 text-[var(--muted-foreground)]">
+                  Quick answers about pregnancy or baby care.
+                </p>
+              </Link>
+              <Link
+                href="/mother/appointments"
+                prefetch={false}
+                className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-sm text-white transition hover:border-[rgba(199,143,98,0.3)]"
+              >
+                Manage appointments
+                <ChevronRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+              </Link>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Link href="/mother/onboarding?add=pregnancy" prefetch={false}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-[var(--border)] bg-transparent text-white"
+                  >
+                    <Plus className="mr-1 h-3.5 w-3.5" /> Pregnancy
+                  </Button>
+                </Link>
+                <Link href="/mother/onboarding?add=baby" prefetch={false}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-[var(--border)] bg-transparent text-white"
+                  >
+                    <Plus className="mr-1 h-3.5 w-3.5" /> Baby
+                  </Button>
+                </Link>
+              </div>
+            </section>
+          </aside>
+        </div>
       </div>
 
       <MedicalFooter />

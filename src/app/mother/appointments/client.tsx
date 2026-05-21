@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   ClipboardList,
   Plus,
-  ShieldCheck,
+  X,
 } from "lucide-react"
 import { MedicalFooter } from "@/components/medical-footer"
 import { Button } from "@/components/ui/button"
@@ -82,14 +82,15 @@ function AppointmentCard({
   upcoming: boolean
 }) {
   return (
-    <div className="rounded-[1.45rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
+    <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-lg font-semibold text-white">{appointment.title}</p>
-          <p className="mt-2 text-sm text-[var(--muted-foreground)]">{formatDateTime(appointment.scheduled_at)}</p>
+          <p className="font-semibold text-white">{appointment.title}</p>
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">{formatDateTime(appointment.scheduled_at)}</p>
+          <p className="mt-1 text-xs text-[var(--muted-foreground)]">{subjectLabel}</p>
         </div>
         <span
-          className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] ${
+          className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] ${
             upcoming
               ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-100"
               : "border-[var(--border)] bg-[rgba(255,248,239,0.06)] text-[var(--muted-foreground)]"
@@ -99,23 +100,8 @@ function AppointmentCard({
         </span>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-[1.1rem] border border-[var(--border)] bg-[rgba(42,34,28,0.35)] px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Related track</p>
-          <p className="mt-2 text-sm text-white">{subjectLabel}</p>
-        </div>
-
-        <div className="rounded-[1.1rem] border border-[var(--border)] bg-[rgba(42,34,28,0.35)] px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Visit status</p>
-          <p className="mt-2 text-sm text-white">{upcoming ? "Still ahead" : "Already happened"}</p>
-        </div>
-      </div>
-
       {appointment.notes ? (
-        <div className="mt-4 rounded-[1.1rem] border border-[var(--border)] bg-[rgba(42,34,28,0.35)] px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Notes</p>
-          <p className="mt-2 text-sm leading-6 text-white">{appointment.notes}</p>
-        </div>
+        <p className="mt-3 text-sm leading-6 text-white">{appointment.notes}</p>
       ) : null}
     </div>
   )
@@ -177,251 +163,179 @@ export function AppointmentsClient({ motherId, profileName, appointments, pregna
 
   return (
     <div className="min-h-screen pb-24">
-      <header className="border-b border-[var(--border)] bg-[rgba(77,64,54,0.74)] px-4 py-4 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl items-center gap-3">
-          <Link
-            href="/mother/home"
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--primary)]">Appointments</p>
-            <h1 className="mt-1 text-2xl font-semibold text-white">Keep visits visible and planned</h1>
+      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(43,37,31,0.88)] px-4 py-3 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/mother/home"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]">Appointments</p>
+              <h1 className="text-base font-semibold text-white">{profileName}</h1>
+            </div>
           </div>
+          <Button size="sm" onClick={() => setShowForm(value => !value)}>
+            {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {showForm ? "Cancel" : "Add"}
+          </Button>
         </div>
       </header>
 
-      <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 xl:grid-cols-[1.16fr_0.84fr]">
-        <section className="space-y-6">
-          <section className="panel-float overflow-hidden rounded-[2.2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.76)] shadow-[0_24px_60px_rgba(0,0,0,0.18)]">
-            <div className="grid gap-0 xl:grid-cols-[1.1fr_0.9fr]">
-              <div className="p-6 sm:p-8">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(201,139,88,0.26)] bg-[rgba(201,139,88,0.1)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--foreground)]">
-                  <CalendarClock className="h-3.5 w-3.5" /> Care planning
-                </div>
+      {/* Stat strip */}
+      <div className="border-b border-[var(--border)] bg-[rgba(73,60,51,0.5)]">
+        <div className="mx-auto flex w-full max-w-3xl divide-x divide-[var(--border)]">
+          {[
+            { label: "Upcoming", value: upcoming.length },
+            { label: "Past", value: past.length },
+            { label: "Care tracks", value: pregnancies.length + babyProfiles.length },
+          ].map(stat => (
+            <div key={stat.label} className="flex-1 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--muted-foreground)]">{stat.label}</p>
+              <p className="mt-0.5 text-xl font-semibold text-white">{stat.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
-                <h2 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight text-white sm:text-5xl">
-                  {profileName}, keep the next visit obvious before it becomes urgent.
-                </h2>
+      <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
 
-                <p className="mt-5 max-w-3xl text-sm leading-7 text-[var(--muted-foreground)]">
-                  Use this page to track upcoming appointments, link them to the correct pregnancy or baby journey, and keep the visit notes visible without digging through the dashboard.
-                </p>
+        {/* Feedback banners */}
+        {success ? (
+          <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>{success}</span>
+            </div>
+          </div>
+        ) : null}
 
-                <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.08)] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Upcoming</p>
-                    <p className="mt-3 text-3xl font-semibold text-white">{upcoming.length}</p>
-                  </div>
-                  <div className="rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.08)] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Past</p>
-                    <p className="mt-3 text-3xl font-semibold text-white">{past.length}</p>
-                  </div>
-                  <div className="rounded-[1.35rem] border border-[rgba(201,139,88,0.24)] bg-[rgba(201,139,88,0.1)] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--foreground)]">Care tracks</p>
-                    <p className="mt-3 text-3xl font-semibold text-white">{pregnancies.length + babyProfiles.length}</p>
-                  </div>
-                </div>
+        {error ? (
+          <div className="rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+            {error}
+          </div>
+        ) : null}
+
+        {/* Add form */}
+        {showForm ? (
+          <div className="rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+              <ClipboardList className="h-3.5 w-3.5" /> New appointment
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Title</Label>
+                <Input
+                  placeholder="Antenatal review"
+                  value={title}
+                  onChange={event => setTitle(event.target.value)}
+                />
               </div>
 
-              <div className="border-t border-[var(--border)] p-6 xl:border-l xl:border-t-0">
-                <div className="rounded-[1.7rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
-                  <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                    <ShieldCheck className="h-4 w-4" /> Why this page matters
-                  </div>
-                  <div className="mt-5 space-y-3">
-                    <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(42,34,28,0.35)] p-4 text-sm leading-6 text-white">
-                      Appointments stop feeling buried when the next visit sits on its own planning surface.
-                    </div>
-                    <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(42,34,28,0.35)] p-4 text-sm leading-6 text-white">
-                      Linking an appointment to a pregnancy or baby track keeps the context clear later.
-                    </div>
-                    <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(42,34,28,0.35)] p-4 text-sm leading-6 text-white">
-                      Notes here help you remember what the visit is for before the day arrives.
-                    </div>
-                  </div>
-                </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Date and time</Label>
+                <Input
+                  type="datetime-local"
+                  value={scheduledAt}
+                  onChange={event => setScheduledAt(event.target.value)}
+                />
               </div>
             </div>
-          </section>
 
-          <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-            <div className="flex flex-col gap-4 border-b border-[var(--border)] pb-5 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.26em] text-[var(--primary)]">Planner</p>
-                <h2 className="mt-2 text-3xl font-semibold text-white">Add or review appointments</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
-                  Schedule a visit and connect it to the right care track if needed.
-                </p>
-              </div>
-              <Button onClick={() => setShowForm(value => !value)} className="lg:min-w-[220px]">
-                <Plus className="h-4 w-4" /> {showForm ? "Hide planner" : "Add appointment"}
+            <div className="space-y-1.5">
+              <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Related subject</Label>
+              <select
+                className="flex h-12 w-full rounded-xl border-2 border-[var(--border)] bg-[rgba(255,248,239,0.08)] px-4 py-2 text-base text-[var(--foreground)] focus:border-[var(--primary)] focus:outline-none"
+                value={`${subjectType}:${subjectId}`}
+                onChange={event => {
+                  const [type, id] = event.target.value.split(":")
+                  setSubjectType(type)
+                  setSubjectId(id || "")
+                }}
+              >
+                <option value=":">General care</option>
+                {pregnancies.map(pregnancy => (
+                  <option key={pregnancy.id} value={`pregnancy:${pregnancy.id}`}>
+                    Pregnancy - {formatStage("pregnancy", { due_date: pregnancy.due_date })}
+                  </option>
+                ))}
+                {babyProfiles.map(child => (
+                  <option key={child.id} value={`child:${child.id}`}>
+                    Baby - {formatStage("child", { birth_date: child.birth_date, name: child.name })}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Notes</Label>
+              <Textarea
+                placeholder="What is this visit for?"
+                value={notes}
+                onChange={event => setNotes(event.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={save} disabled={loading} className="flex-1">
+                {loading ? "Saving…" : "Save appointment"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => { setShowForm(false); setError("") }}
+                className="border-[var(--border)] bg-transparent text-white"
+              >
+                Cancel
               </Button>
             </div>
+          </div>
+        ) : null}
 
-            {success ? (
-              <div className="mt-5 rounded-[1.25rem] border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>{success}</span>
-                </div>
+        {/* Upcoming */}
+        <section>
+          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+            <CalendarClock className="h-3.5 w-3.5" /> Upcoming
+          </div>
+          <div className="space-y-3">
+            {upcoming.length > 0 ? (
+              upcoming.map(appointment => (
+                <AppointmentCard
+                  key={appointment.id}
+                  appointment={appointment}
+                  subjectLabel={subjectText(appointment, pregnancies, babyProfiles)}
+                  upcoming
+                />
+              ))
+            ) : (
+              <div className="rounded-xl border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-5 text-sm text-[var(--muted-foreground)]">
+                No upcoming appointments yet. Use the Add button to schedule one.
               </div>
-            ) : null}
-
-            {error ? (
-              <div className="mt-5 rounded-[1.25rem] border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-                {error}
-              </div>
-            ) : null}
-
-            {showForm ? (
-              <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-                <section className="rounded-[1.7rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
-                  <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                    <ClipboardList className="h-4 w-4" /> Appointment details
-                  </div>
-                  <div className="mt-5 space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Title</Label>
-                      <Input
-                        placeholder="Antenatal review"
-                        value={title}
-                        onChange={event => setTitle(event.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Date and time</Label>
-                      <Input
-                        type="datetime-local"
-                        value={scheduledAt}
-                        onChange={event => setScheduledAt(event.target.value)}
-                      />
-                    </div>
-                  </div>
-                </section>
-
-                <section className="rounded-[1.7rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
-                  <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                    <Calendar className="h-4 w-4" /> Link it to a track
-                  </div>
-                  <div className="mt-5 space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Related subject</Label>
-                      <select
-                        className="flex h-12 w-full rounded-xl border-2 border-[var(--border)] bg-[rgba(255,248,239,0.08)] px-4 py-2 text-base text-[var(--foreground)] focus:border-[var(--primary)] focus:outline-none"
-                        value={`${subjectType}:${subjectId}`}
-                        onChange={event => {
-                          const [type, id] = event.target.value.split(":")
-                          setSubjectType(type)
-                          setSubjectId(id || "")
-                        }}
-                      >
-                        <option value=":">General care</option>
-                        {pregnancies.map(pregnancy => (
-                          <option key={pregnancy.id} value={`pregnancy:${pregnancy.id}`}>
-                            Pregnancy - {formatStage("pregnancy", { due_date: pregnancy.due_date })}
-                          </option>
-                        ))}
-                        {babyProfiles.map(child => (
-                          <option key={child.id} value={`child:${child.id}`}>
-                            Baby - {formatStage("child", { birth_date: child.birth_date, name: child.name })}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Notes</Label>
-                      <Textarea
-                        placeholder="What is this visit for, and what do you want to remember?"
-                        value={notes}
-                        onChange={event => setNotes(event.target.value)}
-                        className="min-h-[130px]"
-                      />
-                    </div>
-                  </div>
-                </section>
-
-                <div className="xl:col-span-2 flex flex-col gap-3 sm:flex-row">
-                  <Button onClick={save} disabled={loading} className="sm:flex-1">
-                    {loading ? "Saving appointment" : "Save appointment"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowForm(false)
-                      setError("")
-                    }}
-                    className="border-[var(--border)] bg-transparent text-white sm:flex-1"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-          </section>
-
-          <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-              <CalendarClock className="h-4 w-4" /> Upcoming appointments
-            </div>
-            <div className="mt-5 space-y-4">
-              {upcoming.length > 0 ? (
-                upcoming.map(appointment => (
-                  <AppointmentCard
-                    key={appointment.id}
-                    appointment={appointment}
-                    subjectLabel={subjectText(appointment, pregnancies, babyProfiles)}
-                    upcoming
-                  />
-                ))
-              ) : (
-                <div className="rounded-[1.35rem] border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-5 text-sm leading-6 text-[var(--muted-foreground)]">
-                  No upcoming appointments yet. Add the next visit so it stays visible on the calendar side of the product.
-                </div>
-              )}
-            </div>
-          </section>
-
-          {past.length > 0 ? (
-            <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                <Calendar className="h-4 w-4" /> Past appointments
-              </div>
-              <div className="mt-5 space-y-4">
-                {past.map(appointment => (
-                  <AppointmentCard
-                    key={appointment.id}
-                    appointment={appointment}
-                    subjectLabel={subjectText(appointment, pregnancies, babyProfiles)}
-                    upcoming={false}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
+            )}
+          </div>
         </section>
 
-        <aside className="space-y-6">
-          <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-              <ShieldCheck className="h-4 w-4" /> Good appointment notes
+        {/* Past */}
+        {past.length > 0 ? (
+          <section>
+            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+              <Calendar className="h-3.5 w-3.5" /> Past
             </div>
-            <div className="mt-5 space-y-3">
-              <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4 text-sm leading-6 text-white">
-                State what the visit is for.
-              </div>
-              <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4 text-sm leading-6 text-white">
-                Link it to the right pregnancy or baby profile when that context matters.
-              </div>
-              <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4 text-sm leading-6 text-white">
-                Add one sentence about what you want to ask or remember.
-              </div>
+            <div className="space-y-3">
+              {past.map(appointment => (
+                <AppointmentCard
+                  key={appointment.id}
+                  appointment={appointment}
+                  subjectLabel={subjectText(appointment, pregnancies, babyProfiles)}
+                  upcoming={false}
+                />
+              ))}
             </div>
           </section>
-        </aside>
+        ) : null}
       </div>
 
       <MedicalFooter />
