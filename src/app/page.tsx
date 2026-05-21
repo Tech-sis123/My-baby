@@ -3,28 +3,17 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MedicalFooter } from "@/components/medical-footer"
 import {
-  Activity,
   ArrowRight,
   Baby,
-  BarChart3,
   BellRing,
   Clock3,
   Link2,
-  MessageCircle,
-  Shield,
   Sparkles,
   Stethoscope,
 } from "lucide-react"
 
 const MOTHER_IMAGE =
   "https://images.pexels.com/photos/35136012/pexels-photo-35136012.jpeg?auto=compress&cs=tinysrgb&w=1200"
-
-const productStats = [
-  { label: "Daily check-ins", value: "60 sec" },
-  { label: "Triage priorities", value: "Red / Yellow / Green" },
-  { label: "Referral connection", value: "Live doctor linking" },
-  { label: "AI support", value: "Role-aware prompts" },
-]
 
 const featureColumns = [
   {
@@ -61,27 +50,6 @@ const processSteps = [
     title: "Prioritize what matters",
     body:
       "Doctors see red first, yellow next, and stable cases after that.",
-  },
-]
-
-const platformPanels = [
-  {
-    title: "Responsive mother dashboard",
-    body:
-      "Quick tips, appointments, doctor linking, and care-mode-specific prompts in a layout that works better on desktop and mobile.",
-    icon: Activity,
-  },
-  {
-    title: "Live doctor triage board",
-    body:
-      "Doctors see urgency and recent updates first, with linked patients sorted by severity.",
-    icon: BarChart3,
-  },
-  {
-    title: "AI that respects role and context",
-    body:
-      "Mothers ask in everyday language. Doctors ask clinical questions. The product should keep that difference clear.",
-    icon: MessageCircle,
   },
 ]
 
@@ -135,19 +103,7 @@ export default function Home() {
         </div>
       </nav>
 
-      <section className="motion-rise mx-auto grid w-full max-w-7xl gap-3 px-4 pb-4 sm:grid-cols-2 sm:px-6 xl:grid-cols-4">
-        {productStats.map(stat => (
-          <div
-            key={stat.label}
-            className="rounded-[1.35rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] px-4 py-4 backdrop-blur"
-          >
-            <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--muted-foreground)]">{stat.label}</p>
-            <p className="mt-2 text-sm font-semibold text-white">{stat.value}</p>
-          </div>
-        ))}
-      </section>
-
-      <main className="mx-auto grid w-full max-w-7xl gap-8 px-4 pb-16 pt-4 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:items-start lg:gap-10 lg:pb-20 lg:pt-6">
+      <main className="mx-auto grid w-full max-w-7xl gap-8 px-4 pb-16 pt-4 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-10 lg:pb-20 lg:pt-6">
         <section className="motion-rise max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(199,143,98,0.18)] bg-[rgba(199,143,98,0.08)] px-4 py-2 text-sm font-medium text-[#f0d2b5] backdrop-blur">
             <Sparkles className="h-4 w-4" />
@@ -161,28 +117,12 @@ export default function Home() {
           <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--muted-foreground)] sm:text-lg sm:leading-8">
             Mothers check in from the right care path. Doctors see linked patients, fresh updates, and clear red, yellow, and green priorities.
           </p>
-        </section>
 
-        <section className="motion-rise-delay flex flex-col gap-4">
-          <div className="panel-float relative overflow-hidden rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)]">
-            <Image
-              src={MOTHER_IMAGE}
-              alt="African mother holding her baby indoors"
-              width={1200}
-              height={1600}
-              className="photo-float h-[240px] w-full object-cover object-top sm:h-[340px]"
-            />
-            <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,rgba(14,15,19,0),rgba(14,15,19,0.88))] p-5">
-              <p className="text-[11px] uppercase tracking-[0.26em] text-[rgba(255,255,255,0.72)]">Mother experience</p>
-              <p className="mt-2 text-xl font-semibold text-white">Context-aware daily care</p>
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/signup?role=mother">
               <Button
                 size="lg"
-                className="w-full bg-[var(--primary)] shadow-[0_18px_40px_rgba(199,143,98,0.24)]"
+                className="bg-[var(--primary)] px-8 shadow-[0_18px_40px_rgba(199,143,98,0.24)]"
               >
                 For mothers
               </Button>
@@ -191,11 +131,27 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.03)] text-white"
+                className="border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.03)] px-8 text-white"
               >
                 For doctors
               </Button>
             </Link>
+          </div>
+        </section>
+
+        <section className="motion-rise-delay">
+          <div className="panel-float relative overflow-hidden rounded-[2rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)]">
+            <Image
+              src={MOTHER_IMAGE}
+              alt="African mother holding her baby indoors"
+              width={1200}
+              height={1600}
+              className="photo-float h-[280px] w-full object-cover object-[center_15%] sm:h-[420px]"
+            />
+            <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,rgba(14,15,19,0),rgba(14,15,19,0.88))] p-5">
+              <p className="text-[11px] uppercase tracking-[0.26em] text-[rgba(255,255,255,0.72)]">Mother experience</p>
+              <p className="mt-2 text-xl font-semibold text-white">Context-aware daily care</p>
+            </div>
           </div>
         </section>
       </main>
@@ -208,25 +164,7 @@ export default function Home() {
         </p>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
-        <p className="mb-6 text-center text-xs uppercase tracking-[0.28em] text-[var(--muted-foreground)]">Product promise</p>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-[1.4rem] border border-red-400/25 bg-red-500/10 p-6">
-            <p className="text-base font-semibold text-white">Red</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">Immediate attention — flagged for urgent doctor review.</p>
-          </div>
-          <div className="rounded-[1.4rem] border border-yellow-400/25 bg-yellow-500/10 p-6">
-            <p className="text-base font-semibold text-white">Yellow</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">Review soon — concern noted, follow up expected.</p>
-          </div>
-          <div className="rounded-[1.4rem] border border-emerald-400/25 bg-emerald-500/10 p-6">
-            <p className="text-base font-semibold text-white">Green</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">Stable and monitored — routine care continuing.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="motion-rise mx-auto max-w-7xl px-4 py-4 sm:px-6">
+      <section className="motion-rise mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <div className="grid gap-3 xl:grid-cols-2">
           {featureColumns.map(column => {
             const Icon = column.icon
@@ -249,7 +187,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="motion-rise-delay mx-auto max-w-7xl px-4 py-4 sm:px-6">
+      <section className="motion-rise-delay mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <div className="rounded-[1.75rem] border border-[rgba(255,248,239,0.14)] bg-[linear-gradient(135deg,rgba(255,248,239,0.08),rgba(201,139,88,0.08))] p-5 sm:p-6">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
@@ -265,44 +203,14 @@ export default function Home() {
             {processSteps.map(step => (
               <div
                 key={step.number}
-                className="rounded-[1.3rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-4"
+                className="rounded-[1.3rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-6"
               >
                 <p className="text-xs font-semibold tracking-[0.18em] text-[#f0d2b5]">{step.number}</p>
-                <h3 className="mt-2 text-lg font-semibold text-white">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{step.body}</p>
+                <h3 className="mt-4 text-lg font-semibold text-white">{step.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{step.body}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="motion-rise mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-[#f0d2b5]">Inside the platform</p>
-            <h2 className="mt-3 text-4xl font-semibold leading-tight text-white">What you can do inside the product.</h2>
-          </div>
-          <p className="max-w-xl text-sm leading-7 text-[var(--muted-foreground)]">
-            The platform is built for check-ins, follow-up, linking, and clearer doctor response.
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-4 lg:grid-cols-3">
-          {platformPanels.map(panel => {
-            const Icon = panel.icon
-            return (
-              <div
-                key={panel.title}
-                className="rounded-[1.9rem] border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] p-6 backdrop-blur"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)]">
-                  <Icon className="h-5 w-5 text-[#f0d2b5]" />
-                </div>
-                <h3 className="mt-5 text-2xl font-semibold text-white">{panel.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{panel.body}</p>
-              </div>
-            )
-          })}
         </div>
       </section>
 
@@ -318,8 +226,8 @@ export default function Home() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.08)]">
                   <Icon className="h-5 w-5 text-[#f0d2b5]" />
                 </div>
-                <h3 className="mt-6 text-xl font-semibold text-white">{item.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{item.body}</p>
+                <h3 className="mt-8 text-xl font-semibold text-white">{item.title}</h3>
+                <p className="mt-4 text-sm leading-7 text-[var(--muted-foreground)]">{item.body}</p>
               </div>
             )
           })}
@@ -356,29 +264,6 @@ export default function Home() {
               </Link>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="mx-auto mb-4 grid w-full max-w-7xl grid-cols-2 gap-6 px-4 pb-8 sm:px-6 sm:pb-10 sm:grid-cols-4">
-        <div>
-          <Activity className="mx-auto mb-2 h-6 w-6 text-[#f0d2b5]" />
-          <p className="text-sm font-semibold text-white">Daily check-ins</p>
-          <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">60 seconds a day</p>
-        </div>
-        <div>
-          <Shield className="mx-auto mb-2 h-6 w-6 text-[#f0d2b5]" />
-          <p className="text-sm font-semibold text-white">Automatic alerts</p>
-          <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">Rule-based triage</p>
-        </div>
-        <div>
-          <BarChart3 className="mx-auto mb-2 h-6 w-6 text-[#f0d2b5]" />
-          <p className="text-sm font-semibold text-white">Doctor dashboard</p>
-          <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">Realtime patient view</p>
-        </div>
-        <div>
-          <MessageCircle className="mx-auto mb-2 h-6 w-6 text-[#f0d2b5]" />
-          <p className="text-sm font-semibold text-white">AI assistant</p>
-          <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">Health Q&amp;A</p>
         </div>
       </section>
 
