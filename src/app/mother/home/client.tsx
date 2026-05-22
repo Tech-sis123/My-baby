@@ -1,14 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { signOutAndRedirect } from "@/lib/auth-client"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MedicalFooter } from "@/components/medical-footer"
-import { CheckinModal } from "@/components/checkin-modal"
 import { formatStage, getGestationalWeek, getBabyAgeDays, SEVERITY_DOT } from "@/lib/utils"
 import { getPregnancyTip, getBabyTip } from "@/lib/tips"
 import type { Pregnancy, Child, Appointment, Flag } from "@/lib/supabase/types"
@@ -141,7 +140,22 @@ export function MotherHomeClient({
   recentCheckins = [],
 }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  const [animatingId, setAnimatingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (searchParams.get("checkinSuccess") === "true") {
+      const subjectId = searchParams.get("subjectId")
+      if (subjectId) {
+        setAnimatingId(subjectId)
+        setTimeout(() => setAnimatingId(null), 2000)
+        // clean up URL
+        router.replace("/mother/home", { scroll: false })
+      }
+    }
+  }, [searchParams, router])
 
   const flagsBySubject = flags.reduce(
     (acc, flag) => {
@@ -386,11 +400,20 @@ export function MotherHomeClient({
                                 )}
                               </p>
                             </div>
-                            <CheckinModal 
-                              subjectType="pregnancy" 
-                              subjectId={pregnancy.id} 
-                              onCheckin={() => router.refresh()} 
-                            />
+                            <div className="relative group sm:flex">
+                              <Link 
+                                href={`/mother/checkin/pregnancy/${pregnancy.id}`}
+                                className="group relative hidden sm:flex h-11 items-center gap-2 rounded-full bg-[var(--primary)] px-6 text-sm font-semibold text-white shadow-[0_0_20px_rgba(199,143,98,0.3)] transition-all hover:bg-[var(--primary)]/90 hover:shadow-[0_0_25px_rgba(199,143,98,0.5)]"
+                              >
+                                Check In Now
+                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                              </Link>
+                              {animatingId === pregnancy.id && (
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-1 font-bold text-yellow-400 animate-out slide-out-to-top-8 fade-out duration-1000 fill-mode-forwards drop-shadow-[0_0_12px_rgba(250,204,21,0.9)] z-50 pointer-events-none">
+                                  <span className="text-3xl">+1</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           {latestStatus[pregnancy.id] && (
@@ -506,11 +529,20 @@ export function MotherHomeClient({
                                 )}
                               </p>
                             </div>
-                            <CheckinModal 
-                              subjectType="child" 
-                              subjectId={child.id} 
-                              onCheckin={() => router.refresh()} 
-                            />
+                            <div className="relative group sm:flex">
+                              <Link 
+                                href={`/mother/checkin/child/${child.id}`}
+                                className="group relative hidden sm:flex h-11 items-center gap-2 rounded-full bg-[var(--primary)] px-6 text-sm font-semibold text-white shadow-[0_0_20px_rgba(199,143,98,0.3)] transition-all hover:bg-[var(--primary)]/90 hover:shadow-[0_0_25px_rgba(199,143,98,0.5)]"
+                              >
+                                Check In Now
+                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                              </Link>
+                              {animatingId === child.id && (
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-1 font-bold text-yellow-400 animate-out slide-out-to-top-8 fade-out duration-1000 fill-mode-forwards drop-shadow-[0_0_12px_rgba(250,204,21,0.9)] z-50 pointer-events-none">
+                                  <span className="text-3xl">+1</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           {latestStatus[child.id] && (

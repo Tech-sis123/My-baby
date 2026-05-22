@@ -2,27 +2,27 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, HeartPulse, ShieldCheck } from "lucide-react"
+import { ArrowLeft, HeartPulse, ShieldCheck, Check, Activity, Smile, Frown, Meh, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { MedicalFooter } from "@/components/medical-footer"
 import { cn } from "@/lib/utils"
-import type { FlagResult } from "@/lib/rules"
 
 type Feeling = "good" | "okay" | "not_great"
 type YesNo = boolean | null
 type Movement = boolean | "na" | null
 
-function ToggleOption({
+function PremiumToggle({
   active,
   onClick,
   label,
+  icon: Icon,
   description,
 }: {
   active: boolean
   onClick: () => void
   label: string
+  icon?: any
   description?: string
 }) {
   return (
@@ -30,100 +30,25 @@ function ToggleOption({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-xl border p-3 text-left transition",
+        "group relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-left transition-all duration-300",
         active
-          ? "border-[rgba(201,139,88,0.5)] bg-[rgba(201,139,88,0.14)]"
-          : "border-[var(--border)] bg-[rgba(255,248,239,0.05)] hover:border-[rgba(201,139,88,0.28)] hover:bg-[rgba(255,248,239,0.08)]"
+          ? "border-[var(--primary)] bg-[var(--primary)]/15 shadow-[0_0_20px_rgba(199,143,98,0.15)] scale-[1.02]"
+          : "border-white/5 bg-white/5 hover:border-white/20 hover:bg-white/10 hover:scale-[1.01]"
       )}
     >
-      <p className="text-sm font-semibold text-white">{label}</p>
-      {description ? <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">{description}</p> : null}
-    </button>
-  )
-}
-
-function BinaryQuestion({
-  label,
-  hint,
-  value,
-  onChange,
-}: {
-  label: string
-  hint: string
-  value: YesNo
-  onChange: (value: boolean) => void
-}) {
-  return (
-    <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
-      <p className="text-sm font-semibold text-white">{label}</p>
-      <p className="mt-0.5 text-xs leading-5 text-[var(--muted-foreground)]">{hint}</p>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <ToggleOption active={value === true} onClick={() => onChange(true)} label="Yes" />
-        <ToggleOption active={value === false} onClick={() => onChange(false)} label="No" />
-      </div>
-    </div>
-  )
-}
-
-function ResultScreen({ flags, onDone }: { flags: FlagResult[]; onDone: () => void }) {
-  const redFlags = flags.filter(flag => flag.severity === "red")
-  const yellowFlags = flags.filter(flag => flag.severity === "yellow")
-  const tone =
-    redFlags.length > 0
-      ? "border-red-400/25 bg-red-500/10 text-red-100"
-      : yellowFlags.length > 0
-        ? "border-yellow-400/25 bg-yellow-500/10 text-yellow-100"
-        : "border-emerald-400/25 bg-emerald-500/10 text-emerald-100"
-
-  const heading =
-    redFlags.length > 0 ? "Important alert recorded" : yellowFlags.length > 0 ? "Check-in recorded with follow-up note" : "Check-in recorded"
-
-  const body =
-    redFlags.length > 0
-      ? "Some answers need quick review."
-      : yellowFlags.length > 0
-        ? "Your check-in was saved and a caution note was raised."
-        : "Everything entered has been saved."
-
-  const visibleFlags = redFlags.length > 0 ? redFlags : yellowFlags
-
-  return (
-    <div className="min-h-screen px-4 py-10">
-      <div className="mx-auto max-w-lg space-y-4">
-        <div className={`rounded-2xl border p-5 ${tone}`}>
-          <p className="text-[10px] uppercase tracking-[0.24em]">Pregnancy check-in</p>
-          <h1 className="mt-2 text-2xl font-semibold text-white">{heading}</h1>
-          <p className="mt-2 text-sm leading-6">{body}</p>
+      {active && (
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] shadow-[0_0_10px_rgba(199,143,98,0.5)]">
+            <Check className="h-3 w-3 text-white" />
+          </div>
         </div>
-
-        {visibleFlags.length > 0 ? (
-          <div className="space-y-2">
-            {visibleFlags.map(flag => (
-              <div
-                key={flag.rule_id}
-                className={`rounded-xl border px-4 py-3 text-sm leading-6 ${
-                  flag.severity === "red"
-                    ? "border-red-400/25 bg-red-500/10 text-red-100"
-                    : "border-yellow-400/25 bg-yellow-500/10 text-yellow-100"
-                }`}
-              >
-                {flag.message}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-100">
-            No warning sign was raised from this check-in.
-          </div>
-        )}
-
-        <Button className="w-full" onClick={onDone}>
-          Back to dashboard
-        </Button>
+      )}
+      <div className="flex items-center gap-3 mb-1 sm:mb-2">
+        {Icon && <Icon className={cn("h-6 w-6 transition-colors", active ? "text-[var(--primary)]" : "text-gray-400")} />}
+        <p className={cn("text-base sm:text-lg font-semibold transition-colors", active ? "text-white" : "text-gray-300")}>{label}</p>
       </div>
-
-      <MedicalFooter />
-    </div>
+      {description && <p className="text-xs sm:text-sm text-gray-400 mt-2">{description}</p>}
+    </button>
   )
 }
 
@@ -140,13 +65,10 @@ export default function PregnancyCheckinPage() {
   const [weekLabel, setWeekLabel] = useState("")
   const [bpSystolic, setBpSystolic] = useState("")
   const [bpDiastolic, setBpDiastolic] = useState("")
-  const [note, setNote] = useState("")
   const [submitting, setSubmitting] = useState(false)
-  const [result, setResult] = useState<{ flags: FlagResult[] } | null>(null)
 
   useEffect(() => {
     let active = true
-
     fetch(`/api/pregnancy-week?id=${pregnancyId}`)
       .then(response => response.json())
       .then(data => {
@@ -157,19 +79,16 @@ export default function PregnancyCheckinPage() {
         }
       })
       .catch(() => {})
-
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [pregnancyId])
+
+  const isValid = feeling !== null && bleeding !== null && severeHeadache !== null && swelling !== null && (!showMovement || fetalMovement !== null)
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-
-    if (feeling === null || bleeding === null || severeHeadache === null || swelling === null) return
+    if (!isValid || submitting) return
 
     setSubmitting(true)
-
     const payload = {
       feeling,
       bleeding,
@@ -178,7 +97,6 @@ export default function PregnancyCheckinPage() {
       ...(showMovement && fetalMovement !== null ? { fetal_movement: fetalMovement === "na" ? null : fetalMovement } : {}),
       ...(bpSystolic ? { bp_systolic: Number(bpSystolic) } : {}),
       ...(bpDiastolic ? { bp_diastolic: Number(bpDiastolic) } : {}),
-      ...(note ? { note } : {}),
     }
 
     const response = await fetch("/api/checkin", {
@@ -187,150 +105,166 @@ export default function PregnancyCheckinPage() {
       body: JSON.stringify({ subject_type: "pregnancy", subject_id: pregnancyId, payload }),
     })
 
-    const data = await response.json()
-    setSubmitting(false)
-
-    if (!response.ok) {
-      alert("Check-in failed: " + (data.error || "Unknown error occurred while submitting."))
-      return
+    if (response.ok) {
+      router.replace(`/mother/home?checkinSuccess=true&subjectId=${pregnancyId}`)
+    } else {
+      alert("Check-in failed. Please try again.")
+      setSubmitting(false)
     }
-
-    setResult(data)
-  }
-
-  if (result) {
-    return <ResultScreen flags={result.flags} onDone={() => router.push("/mother/home")} />
   }
 
   return (
-    <div className="min-h-screen pb-24">
-      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(43,37,31,0.88)] px-4 py-3 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-2xl items-center gap-3">
+    <div className="min-h-screen pb-24 bg-[#0E1116] selection:bg-[var(--primary)]/30">
+      {/* Sleek Header */}
+      <header className="sticky top-0 z-40 border-b border-white/5 bg-black/40 px-4 py-4 backdrop-blur-2xl">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-300 transition-all hover:bg-white/10 hover:text-white"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" />
           </button>
-          <div className="flex-1">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]">Pregnancy check-in</p>
-            <h1 className="text-base font-semibold text-white">
-              Daily review{weekLabel ? ` · ${weekLabel}` : ""}
-            </h1>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--primary)]">Pregnancy Check-in</p>
+            <h1 className="text-lg font-semibold text-white">Daily Review {weekLabel && <span className="text-gray-400 font-normal">· {weekLabel}</span>}</h1>
           </div>
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-4 px-4 py-6">
+      <main className="mx-auto max-w-3xl px-4 py-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <form onSubmit={handleSubmit} className="space-y-12">
+          
+          {/* Section: Feeling */}
+          <section className="space-y-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">How are you feeling today?</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <PremiumToggle active={feeling === "good"} onClick={() => setFeeling("good")} label="Good" icon={Smile} description="I feel mostly well today." />
+              <PremiumToggle active={feeling === "okay"} onClick={() => setFeeling("okay")} label="Okay" icon={Meh} description="Manageable, just standard symptoms." />
+              <PremiumToggle active={feeling === "not_great"} onClick={() => setFeeling("not_great")} label="Not Great" icon={Frown} description="I feel off or unwell today." />
+            </div>
+          </section>
 
-        {/* Feeling */}
-        <div className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
-          <p className="text-sm font-semibold text-white">How are you feeling today?</p>
-          <p className="mt-0.5 text-xs leading-5 text-[var(--muted-foreground)]">Choose the option that feels closest.</p>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            <ToggleOption active={feeling === "good"} onClick={() => setFeeling("good")} label="Good" description="Mostly well" />
-            <ToggleOption active={feeling === "okay"} onClick={() => setFeeling("okay")} label="Okay" description="Manageable" />
-            <ToggleOption active={feeling === "not_great"} onClick={() => setFeeling("not_great")} label="Not great" description="Something's off" />
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+          {/* Section: Symptoms */}
+          <section className="space-y-8">
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Any unusual symptoms?</h2>
+            
+            <div className="space-y-6">
+              <div className="rounded-[2rem] border border-white/5 bg-black/20 p-6 sm:p-8 backdrop-blur-xl">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white">Vaginal Bleeding</h3>
+                  <p className="text-sm text-gray-400 mt-1">Have you noticed any bleeding today?</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <PremiumToggle active={bleeding === true} onClick={() => setBleeding(true)} label="Yes" />
+                  <PremiumToggle active={bleeding === false} onClick={() => setBleeding(false)} label="No" />
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-white/5 bg-black/20 p-6 sm:p-8 backdrop-blur-xl">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white">Severe Headache</h3>
+                  <p className="text-sm text-gray-400 mt-1">Do you have a strong headache that won't go away?</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <PremiumToggle active={severeHeadache === true} onClick={() => setSevereHeadache(true)} label="Yes" />
+                  <PremiumToggle active={severeHeadache === false} onClick={() => setSevereHeadache(false)} label="No" />
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-white/5 bg-black/20 p-6 sm:p-8 backdrop-blur-xl">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white">Sudden Swelling</h3>
+                  <p className="text-sm text-gray-400 mt-1">Have you noticed sudden swelling in your face or hands?</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <PremiumToggle active={swelling === true} onClick={() => setSwelling(true)} label="Yes" />
+                  <PremiumToggle active={swelling === false} onClick={() => setSwelling(false)} label="No" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Fetal Movement */}
+          {showMovement && (
+            <>
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              <section className="space-y-4">
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Baby's Activity</h2>
+                <div className="rounded-[2rem] border border-white/5 bg-[var(--primary)]/5 p-6 sm:p-8 backdrop-blur-xl">
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-[var(--primary)]" />
+                      Fetal Movement
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-1">Is the baby moving normally today?</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <PremiumToggle active={fetalMovement === true} onClick={() => setFetalMovement(true)} label="Yes" />
+                    <PremiumToggle active={fetalMovement === false} onClick={() => setFetalMovement(false)} label="No" />
+                    <PremiumToggle active={fetalMovement === "na"} onClick={() => setFetalMovement("na")} label="Not Sure" />
+                  </div>
+                </div>
+              </section>
+            </>
+          )}
+
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+          {/* Vitals */}
+          <section className="space-y-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Vitals (Optional)</h2>
+            <div className="rounded-[2rem] border border-white/5 bg-black/20 p-6 sm:p-8 backdrop-blur-xl">
+               <div className="flex items-center gap-2 mb-6">
+                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
+                   <HeartPulse className="h-5 w-5 text-red-400" />
+                 </div>
+                 <div>
+                   <h3 className="text-lg font-semibold text-white">Blood Pressure</h3>
+                   <p className="text-xs text-gray-400 mt-0.5">Enter if you measured today.</p>
+                 </div>
+               </div>
+               <div className="flex items-center gap-4">
+                 <div className="flex-1">
+                   <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">Systolic (Top)</label>
+                   <Input
+                     type="number"
+                     placeholder="120"
+                     value={bpSystolic}
+                     onChange={e => setBpSystolic(e.target.value)}
+                     className="h-14 bg-white/5 border-white/10 text-xl text-white focus-visible:ring-[var(--primary)] focus-visible:border-[var(--primary)]"
+                   />
+                 </div>
+                 <div className="text-3xl font-light text-gray-600 mt-6">/</div>
+                 <div className="flex-1">
+                   <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 block">Diastolic (Bottom)</label>
+                   <Input
+                     type="number"
+                     placeholder="80"
+                     value={bpDiastolic}
+                     onChange={e => setBpDiastolic(e.target.value)}
+                     className="h-14 bg-white/5 border-white/10 text-xl text-white focus-visible:ring-[var(--primary)] focus-visible:border-[var(--primary)]"
+                   />
+                 </div>
+               </div>
+            </div>
+          </section>
+
+          {/* Submit Action */}
+          <div className="pt-8 pb-12 sticky bottom-0 z-10 bg-gradient-to-t from-[#0E1116] via-[#0E1116] to-transparent">
+            <Button
+              type="submit"
+              disabled={!isValid || submitting}
+              className="w-full h-16 rounded-full bg-[var(--primary)] text-lg font-bold text-white shadow-[0_0_40px_rgba(199,143,98,0.4)] transition-all hover:bg-[var(--primary)]/90 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 group"
+            >
+              {submitting ? "Saving Check-in..." : "Complete Check-in"}
+              {!submitting && <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />}
+            </Button>
           </div>
-        </div>
 
-        {/* Binary questions */}
-        <div className="space-y-3">
-          <BinaryQuestion
-            label="Any bleeding?"
-            hint="Tell us if you noticed any bleeding today."
-            value={bleeding}
-            onChange={setBleeding}
-          />
-          <BinaryQuestion
-            label="Severe headache?"
-            hint="A strong or unusual headache can matter in pregnancy."
-            value={severeHeadache}
-            onChange={setSevereHeadache}
-          />
-          <BinaryQuestion
-            label="Swelling in your hands or face?"
-            hint="This helps identify changes worth reviewing."
-            value={swelling}
-            onChange={setSwelling}
-          />
-        </div>
-
-        {/* Fetal movement (week ≥ 20) */}
-        {showMovement ? (
-          <div className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
-            <p className="text-sm font-semibold text-white">Baby movements today?</p>
-            <p className="mt-0.5 text-xs leading-5 text-[var(--muted-foreground)]">Track appears once movement is expected.</p>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <ToggleOption active={fetalMovement === true} onClick={() => setFetalMovement(true)} label="Yes" />
-              <ToggleOption active={fetalMovement === false} onClick={() => setFetalMovement(false)} label="No" />
-              <ToggleOption active={fetalMovement === "na"} onClick={() => setFetalMovement("na")} label="N/A" />
-            </div>
-          </div>
-        ) : null}
-
-        {/* Blood pressure + note */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-              <HeartPulse className="h-3.5 w-3.5" /> Blood pressure
-            </div>
-            <p className="mt-1 text-xs text-[var(--muted-foreground)]">Optional — if you measured today.</p>
-            <div className="mt-3 flex items-center gap-2">
-              <Input
-                type="number"
-                placeholder="Systolic"
-                value={bpSystolic}
-                onChange={event => setBpSystolic(event.target.value)}
-              />
-              <span className="text-xs font-semibold text-[var(--muted-foreground)]">/</span>
-              <Input
-                type="number"
-                placeholder="Diastolic"
-                value={bpDiastolic}
-                onChange={event => setBpDiastolic(event.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-              <ShieldCheck className="h-3.5 w-3.5" /> Add a note
-            </div>
-            <p className="mt-1 text-xs text-[var(--muted-foreground)]">Anything your care team should know.</p>
-            <div className="mt-3">
-              <Textarea
-                placeholder="Anything else you want to mention?"
-                value={note}
-                onChange={event => setNote(event.target.value)}
-                maxLength={200}
-                className="min-h-[72px]"
-              />
-              <p className="mt-1 text-right text-[10px] text-[var(--muted-foreground)]">{note.length}/200</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 pt-1 sm:flex-row">
-          <Button
-            type="submit"
-            disabled={submitting || feeling === null || bleeding === null || severeHeadache === null || swelling === null}
-            className="sm:flex-1"
-          >
-            {submitting ? "Submitting…" : "Submit pregnancy check-in"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/mother/home")}
-            className="border-[var(--border)] bg-transparent text-white sm:flex-1"
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
-
-      <MedicalFooter />
+        </form>
+      </main>
     </div>
   )
 }
