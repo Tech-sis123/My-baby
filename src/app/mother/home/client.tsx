@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MedicalFooter } from "@/components/medical-footer"
+import { CheckinModal } from "@/components/checkin-modal"
 import { formatStage, getGestationalWeek, getBabyAgeDays, SEVERITY_DOT } from "@/lib/utils"
 import { getPregnancyTip, getBabyTip } from "@/lib/tips"
 import type { Pregnancy, Child, Appointment, Flag } from "@/lib/supabase/types"
@@ -126,49 +127,7 @@ function LinkDoctorInline({
   )
 }
 
-function QuickCheckinButton({ subjectType, subjectId, onCheckin }: { subjectType: "pregnancy" | "child", subjectId: string, onCheckin: () => void }) {
-  const [animating, setAnimating] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
 
-  async function handleCheckin() {
-    if (submitting) return
-    setSubmitting(true)
-    const payload = subjectType === "pregnancy"
-      ? { feeling: "good", bleeding: false, severe_headache: false, swelling: false }
-      : { feeding: "breastmilk", wet_diapers_24h: 8, fever: false, breathing_normal: true, mother_mood: "good" }
-
-    const response = await fetch("/api/checkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subject_type: subjectType, subject_id: subjectId, payload }),
-    })
-
-    setSubmitting(false)
-    if (response.ok) {
-      setAnimating(true)
-      onCheckin()
-      setTimeout(() => setAnimating(false), 2000)
-    }
-  }
-
-  return (
-    <div className="relative group sm:flex">
-      <button 
-        onClick={handleCheckin} 
-        disabled={submitting}
-        className="group relative hidden sm:flex h-11 items-center gap-2 rounded-full bg-[var(--primary)] px-6 text-sm font-semibold text-white shadow-[0_0_20px_rgba(199,143,98,0.3)] transition-all hover:bg-[var(--primary)]/90 hover:shadow-[0_0_25px_rgba(199,143,98,0.5)] disabled:opacity-50"
-      >
-        {submitting ? "Checking in..." : "Check In Now"}
-        {!submitting && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
-      </button>
-      {animating && (
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-1 font-bold text-yellow-400 animate-out slide-out-to-top-8 fade-out duration-1000 fill-mode-forwards drop-shadow-[0_0_12px_rgba(250,204,21,0.9)]">
-          <span className="text-2xl">+1</span>
-        </div>
-      )}
-    </div>
-  )
-}
 
 export function MotherHomeClient({
   profileName,
@@ -427,7 +386,7 @@ export function MotherHomeClient({
                                 )}
                               </p>
                             </div>
-                            <QuickCheckinButton 
+                            <CheckinModal 
                               subjectType="pregnancy" 
                               subjectId={pregnancy.id} 
                               onCheckin={() => router.refresh()} 
@@ -547,7 +506,7 @@ export function MotherHomeClient({
                                 )}
                               </p>
                             </div>
-                            <QuickCheckinButton 
+                            <CheckinModal 
                               subjectType="child" 
                               subjectId={child.id} 
                               onCheckin={() => router.refresh()} 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { signOutAndRedirect } from "@/lib/auth-client"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -201,6 +202,7 @@ function TriageCard({ row }: { row: Row }) {
 }
 
 export function DoctorDashboardClient({
+  doctorId,
   doctorName,
   specialty,
   clinicName,
@@ -216,8 +218,10 @@ export function DoctorDashboardClient({
   const [latestCheckinsData, setLatestCheckinsData] = useState(initialLatestCheckinsData)
   const [realtimePulse, setRealtimePulse] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isSeeding, setIsSeeding] = useState(false)
 
   const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     const allSubjectIds = [
@@ -262,6 +266,21 @@ export function DoctorDashboardClient({
       supabase.removeChannel(checkinSub)
     }
   }, [pregnancies, babyProfiles, supabase])
+
+  useEffect(() => {
+    if (pregnancies.length === 0 && babyProfiles.length === 0 && !isSeeding) {
+      setIsSeeding(true)
+      fetch("/api/seed-demo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ doctorId })
+      }).then(res => res.json()).then(() => {
+        router.refresh()
+      }).catch(() => {
+        setIsSeeding(false)
+      })
+    }
+  }, [pregnancies.length, babyProfiles.length, doctorId])
 
   const flagsBySubject = flags.reduce(
     (acc, flag) => {
@@ -334,6 +353,22 @@ export function DoctorDashboardClient({
     await navigator.clipboard.writeText(inviteCode)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (isSeeding || (pregnancies.length === 0 && babyProfiles.length === 0)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
+        <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">
+          <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[var(--card)] border border-[var(--primary)]/30 shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+            <RefreshCw className="h-8 w-8 text-[var(--primary)] animate-spin" />
+          </div>
+          <div className="text-center space-y-2">
+            <h2 className="text-xl font-bold text-white tracking-tight">Preparing Demo Environment</h2>
+            <p className="text-sm text-gray-400">Generating simulated patients, chat messages, and flags...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
