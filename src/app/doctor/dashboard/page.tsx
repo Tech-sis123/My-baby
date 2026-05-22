@@ -45,6 +45,7 @@ export default async function DoctorDashboardPage() {
     mother_id: string
     subject_id: string
     subject_type: string
+    checkin_id?: string | null
     rule_id: string
     severity: string
     message: string
