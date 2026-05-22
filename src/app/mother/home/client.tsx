@@ -354,7 +354,7 @@ export function MotherHomeClient({
                     const week = getGestationalWeek(pregnancy.due_date)
                     const stage = formatStage("pregnancy", { due_date: pregnancy.due_date })
                     const tip = getPregnancyTip(week)
-                    const last = lastCheckins[pregnancy.id]
+                    const lastCheckin = lastCheckins[pregnancy.id]
                     const flag = topFlag(pregnancy.id)
                     const flagMsg = topFlagMessage(pregnancy.id)
 
