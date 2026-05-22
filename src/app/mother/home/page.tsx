@@ -58,15 +58,57 @@ export default async function MotherHomePage() {
   ]
 
   const lastCheckins: Record<string, string> = {}
+  const latestStatus: Record<string, { severity: string, message: string }> = {}
+  let recentCheckins: Array<{ id: string, subject_id: string, subject_type: string, created_at: string, severity?: string, message?: string }> = []
+
   if (subjectIds.length > 0) {
     const { data: checkins } = await supabase
       .from("checkins")
-      .select("subject_id, created_at")
+      .select("id, subject_id, subject_type, created_at")
       .in("subject_id", subjectIds)
       .order("created_at", { ascending: false })
 
-    for (const checkin of checkins || []) {
-      if (!lastCheckins[checkin.subject_id]) lastCheckins[checkin.subject_id] = checkin.created_at
+    if (checkins && checkins.length > 0) {
+      const latestCheckinIds = []
+      
+      for (const checkin of checkins) {
+        if (!lastCheckins[checkin.subject_id]) {
+          lastCheckins[checkin.subject_id] = checkin.created_at
+          latestCheckinIds.push(checkin.id)
+        }
+      }
+
+      recentCheckins = checkins.slice(0, 5)
+      const allIdsToFetchFlags = Array.from(new Set([...latestCheckinIds, ...recentCheckins.map(c => c.id)]))
+
+      if (allIdsToFetchFlags.length > 0) {
+        const { data: flagsForCheckins } = await supabase
+          .from("flags")
+          .select("checkin_id, severity, message")
+          .in("checkin_id", allIdsToFetchFlags)
+
+        // Populate latestStatus
+        for (const checkin of checkins) {
+          if (lastCheckins[checkin.subject_id] === checkin.created_at && !latestStatus[checkin.subject_id]) {
+            const flag = flagsForCheckins?.find(f => f.checkin_id === checkin.id)
+            if (flag) {
+              latestStatus[checkin.subject_id] = { severity: flag.severity, message: flag.message }
+            } else {
+              latestStatus[checkin.subject_id] = { severity: "green", message: "Normal check-in completed. All clear." }
+            }
+          }
+        }
+
+        // Populate recentCheckins flags
+        recentCheckins = recentCheckins.map(rc => {
+          const flag = flagsForCheckins?.find(f => f.checkin_id === rc.id)
+          return {
+            ...rc,
+            severity: flag?.severity || "green",
+            message: flag?.message || "Normal check-in completed."
+          }
+        })
+      }
     }
   }
 
@@ -79,6 +121,8 @@ export default async function MotherHomePage() {
       appointments={appointments || []}
       flags={flags || []}
       lastCheckins={lastCheckins}
+      latestStatus={latestStatus}
+      recentCheckins={recentCheckins}
     />
   )
 }

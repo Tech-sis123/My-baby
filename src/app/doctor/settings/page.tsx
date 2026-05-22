@@ -12,6 +12,7 @@ import { MedicalFooter } from "@/components/medical-footer"
 import { bootstrapAccount } from "@/lib/account"
 import { createClient } from "@/lib/supabase/server"
 import { ReferralCodeManager } from "./referral-code-manager"
+import { ProfileSettings } from "@/components/profile-settings"
 
 export default async function DoctorSettingsPage() {
   const supabase = await createClient()
@@ -25,7 +26,7 @@ export default async function DoctorSettingsPage() {
 
   const [{ data: doctor }, { data: profile }, { data: pregnancies }, { data: children }] = await Promise.all([
     supabase.from("doctors").select("*").eq("user_id", user.id).maybeSingle(),
-    supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle(),
     supabase.from("pregnancies").select("id, mother_id").eq("linked_doctor_id", user.id),
     supabase.from("children").select("id, mother_id").eq("linked_doctor_id", user.id),
   ])
@@ -79,8 +80,14 @@ export default async function DoctorSettingsPage() {
         </div>
       </div>
 
-      {/* Referral code manager */}
-      <div className="mx-auto max-w-3xl px-4 py-6">
+      {/* Settings Sections */}
+      <div className="mx-auto max-w-3xl px-4 py-6 space-y-8">
+        <ProfileSettings 
+          userId={user.id} 
+          initialFullName={profile?.full_name || ""} 
+          initialPhone={profile?.phone || ""} 
+          email={user.email || ""} 
+        />
         <ReferralCodeManager
           userId={user.id}
           displayName={displayName}

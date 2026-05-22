@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Send, User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Send, User, ChevronLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Message } from "@/lib/supabase/types"
 import { getMessageHistory, sendMessage } from "@/lib/supabase/messages"
@@ -21,6 +22,7 @@ export function ChatWindow({
   partnerName,
   partnerRole = "doctor"
 }: ChatWindowProps) {
+  const router = useRouter()
   const supabase = createClient()
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -107,6 +109,13 @@ export function ChatWindow({
     <div className="flex flex-col h-[calc(100vh-12rem)] min-h-[500px] w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Chat Header */}
       <div className="flex items-center p-4 border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+        <button 
+          onClick={() => router.back()} 
+          className="mr-3 flex h-10 w-10 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-primary/10 text-primary shadow-sm font-medium text-sm">
           {partnerInitials}
         </div>

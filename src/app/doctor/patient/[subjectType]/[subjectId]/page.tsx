@@ -233,10 +233,17 @@ export default async function DoctorPatientPage({
           <div className="flex items-center gap-3">
             <Link
               href="/doctor/dashboard"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[var(--border)]">
+              <img 
+                src="https://images.pexels.com/photos/35136012/pexels-photo-35136012.jpeg?auto=compress&cs=tinysrgb&w=800" 
+                alt="Patient profile" 
+                className="h-full w-full object-cover" 
+              />
+            </div>
             <div>
               <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]">
                 {subjectType === "pregnancy" ? "Pregnancy" : "Baby"} · {stage}

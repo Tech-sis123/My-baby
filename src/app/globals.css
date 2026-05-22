@@ -1,39 +1,40 @@
 @import "tailwindcss";
 
 :root {
-  --background: #2b251f;
-  --foreground: #fff8ef;
-  --card: #ffffff;
-  --card-foreground: #1c1d20;
-  --primary: #c98b58;
+  --background: #111827; /* Lighter base (gray-900) */
+  --foreground: #F8FAFC;
+  --card: #1F2937; /* Lighter card (gray-800) */
+  --card-foreground: #F8FAFC;
+  --primary: #F97316; /* Clean orange primary */
   --primary-foreground: #ffffff;
-  --secondary: #f0e4d4;
-  --secondary-foreground: #17181b;
-  --muted: #3a342e;
-  --muted-foreground: #dfd2c2;
-  --accent: #ead8c2;
-  --accent-foreground: #1d1e21;
-  --destructive: #dc2626;
+  --secondary: #334155;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+  --destructive: #EF4444;
   --destructive-foreground: #ffffff;
-  --border: #6b5a4c;
-  --input: #55483d;
-  --ring: #dea777;
+  --border: #334155;
+  --input: #1E293B;
+  --ring: #F97316;
   --radius: 0.75rem;
-  --surface: rgba(58, 48, 40, 0.78);
-  --surface-muted: rgba(77, 64, 54, 0.72);
-  --hero-glow: rgba(221, 168, 120, 0.24);
 
-  /* Flag severity */
-  --flag-red: #dc2626;
-  --flag-yellow: #f59e0b;
-  --flag-green: #10b981;
+  /* Strict Semantic Colors */
+  --flag-red: #EF4444;
+  --flag-amber: #F59E0B;
+  --flag-green: #10B981;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Avenir Next", "Segoe UI", sans-serif;
+  --font-sans: "Inter", "Avenir Next", "Segoe UI", sans-serif;
   --font-mono: "SFMono-Regular", "Menlo", monospace;
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-card: var(--card);
 }
 
 * {
@@ -45,114 +46,28 @@ html {
 }
 
 body {
-  background:
-    radial-gradient(circle at top left, rgba(240, 197, 145, 0.2), transparent 30%),
-    radial-gradient(circle at top right, rgba(244, 219, 186, 0.12), transparent 26%),
-    radial-gradient(circle at bottom right, rgba(164, 122, 92, 0.16), transparent 24%),
-    linear-gradient(180deg, #514436 0%, #3f352d 42%, #2e2723 100%);
+  background: 
+    radial-gradient(circle at top, #1F2937 0%, #111827 60%),
+    #111827;
   color: var(--foreground);
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
+  min-height: 100vh;
 }
 
 .platform-shell {
   position: relative;
   z-index: 1;
-  animation: shell-enter 420ms ease-out;
-}
-
-.platform-bubbles {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.platform-bubble {
-  position: absolute;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 245, 232, 0.14);
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.24), rgba(235, 193, 146, 0.13) 45%, rgba(235, 193, 146, 0.04) 70%);
-  filter: blur(0.3px);
-  opacity: 0.4;
-  animation: bubble-float 18s ease-in-out infinite;
-}
-
-.bubble-a {
-  left: 4%;
-  top: 16%;
-  height: 14rem;
-  width: 14rem;
-}
-
-.bubble-b {
-  right: 7%;
-  top: 10%;
-  height: 8rem;
-  width: 8rem;
-  animation-duration: 14s;
-}
-
-.bubble-c {
-  left: 18%;
-  bottom: 14%;
-  height: 10rem;
-  width: 10rem;
-  animation-duration: 16s;
-  animation-delay: -3s;
-}
-
-.bubble-d {
-  right: 16%;
-  bottom: 12%;
-  height: 18rem;
-  width: 18rem;
-  opacity: 0.2;
-  animation-duration: 22s;
-}
-
-.bubble-e {
-  left: 46%;
-  top: 26%;
-  height: 5rem;
-  width: 5rem;
-  animation-duration: 12s;
-  animation-delay: -2s;
-}
-
-.bubble-f {
-  left: 72%;
-  top: 52%;
-  height: 7rem;
-  width: 7rem;
-  animation-duration: 15s;
-}
-
-.bubble-g {
-  left: 34%;
-  bottom: 24%;
-  height: 4rem;
-  width: 4rem;
-  animation-duration: 13s;
-  animation-delay: -4s;
+  animation: shell-enter 300ms ease-out;
 }
 
 .motion-rise {
-  animation: rise-in 520ms ease-out both;
+  animation: rise-in 400ms ease-out both;
 }
 
 .motion-rise-delay {
-  animation: rise-in 700ms ease-out both;
-}
-
-.panel-float {
-  animation: panel-float 9s ease-in-out infinite;
-}
-
-.photo-float {
-  animation: photo-float 11s ease-in-out infinite;
+  animation: rise-in 500ms ease-out both;
 }
 
 h1, h2, h3, .font-display {
@@ -188,91 +103,29 @@ select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--foreground);
-  -webkit-box-shadow: 0 0 0 1000px rgba(255, 248, 239, 0.1) inset;
-  box-shadow: 0 0 0 1000px rgba(255, 248, 239, 0.1) inset;
+  -webkit-box-shadow: 0 0 0 1000px #1A1D23 inset;
+  box-shadow: 0 0 0 1000px #1A1D23 inset;
   transition: background-color 9999s ease-out 0s;
   caret-color: var(--foreground);
 }
 
 ::selection {
-  background: rgba(199, 143, 98, 0.28);
+  background: rgba(249, 115, 22, 0.2);
 }
 
 @keyframes shell-enter {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes bubble-float {
-  0%, 100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  25% {
-    transform: translate3d(10px, -12px, 0) scale(1.04);
-  }
-  50% {
-    transform: translate3d(-8px, -24px, 0) scale(0.98);
-  }
-  75% {
-    transform: translate3d(12px, -10px, 0) scale(1.02);
-  }
-}
-
-@keyframes panel-float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-@keyframes photo-float {
-  0%, 100% {
-    transform: scale(1) translateY(0);
-  }
-  50% {
-    transform: scale(1.02) translateY(-4px);
-  }
-}
-
-@media (max-width: 640px) {
-  .platform-bubble {
-    opacity: 0.18;
-  }
-
-  .bubble-a,
-  .bubble-d {
-    height: 9rem;
-    width: 9rem;
-  }
-
-  .bubble-b,
-  .bubble-c,
-  .bubble-f {
-    height: 5rem;
-    width: 5rem;
-  }
-
-  .bubble-e,
-  .bubble-g {
-    height: 3rem;
-    width: 3rem;
   }
 }
 
@@ -280,9 +133,6 @@ select:-webkit-autofill:focus {
   .platform-shell,
   .motion-rise,
   .motion-rise-delay,
-  .panel-float,
-  .photo-float,
-  .platform-bubble,
   a,
   button {
     animation: none !important;

@@ -52,6 +52,7 @@ export default async function DoctorDashboardPage() {
   }> = []
 
   const lastCheckins: Record<string, string> = {}
+  const latestCheckinsData: Record<string, { severity: string; message: string }> = {}
 
   if (subjectIds.length > 0) {
     const [flagsRes, checkinsRes] = await Promise.all([
@@ -62,14 +63,24 @@ export default async function DoctorDashboardPage() {
         .is("resolved_at", null),
       supabase
         .from("checkins")
-        .select("subject_id, created_at")
+        .select("id, subject_id, created_at")
         .in("subject_id", subjectIds)
         .order("created_at", { ascending: false }),
     ])
 
     flags = flagsRes.data || []
     for (const checkin of checkinsRes.data || []) {
-      if (!lastCheckins[checkin.subject_id]) lastCheckins[checkin.subject_id] = checkin.created_at
+      if (!lastCheckins[checkin.subject_id]) {
+        lastCheckins[checkin.subject_id] = checkin.created_at
+        
+        // Find if this checkin generated a flag
+        const flagForCheckin = flags.find(f => f.checkin_id === checkin.id)
+        
+        latestCheckinsData[checkin.subject_id] = { 
+          severity: flagForCheckin?.severity || "green", 
+          message: flagForCheckin?.message || "All clear." 
+        }
+      }
     }
   }
 
@@ -84,6 +95,7 @@ export default async function DoctorDashboardPage() {
       babyProfiles={babyProfiles || []}
       initialFlags={flags}
       initialLastCheckins={lastCheckins}
+      initialLatestCheckinsData={latestCheckinsData}
     />
   )
 }
