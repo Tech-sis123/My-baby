@@ -426,6 +426,7 @@ export function MotherHomeClient({
                                   </span>
                                 )}
                               </p>
+                            </div>
                             <QuickCheckinButton 
                               subjectType="pregnancy" 
                               subjectId={pregnancy.id} 
@@ -545,6 +546,7 @@ export function MotherHomeClient({
                                   </span>
                                 )}
                               </p>
+                            </div>
                             <QuickCheckinButton 
                               subjectType="child" 
                               subjectId={child.id} 
