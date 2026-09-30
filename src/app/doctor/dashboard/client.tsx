@@ -3,29 +3,34 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { signOutAndRedirect } from "@/lib/auth-client"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { formatStage } from "@/lib/utils"
+import { cn, formatStage } from "@/lib/utils"
+import { AppHeader } from "@/components/app/app-header"
+import {
+  EmptyState,
+  SEVERITY_LABEL,
+  SEVERITY_RAIL,
+  SEVERITY_TEXT,
+  SeverityBadge,
+  SeverityDot,
+  StatTile,
+} from "@/components/app/status"
 import {
   Activity,
   AlertTriangle,
+  Baby,
   Bot,
+  Check,
+  ChevronRight,
   Copy,
-  LogOut,
-  RefreshCw,
-  Settings,
+  HeartPulse,
+  LoaderCircle,
+  MessageSquare,
   ShieldCheck,
   Siren,
-  Stethoscope,
   Users,
-  MessageSquare,
-  ChevronRight,
-  ArrowRight,
 } from "lucide-react"
-
-const DOCTOR_IMAGE =
-  "https://images.pexels.com/photos/19957220/pexels-photo-19957220.jpeg?auto=compress&cs=tinysrgb&w=800"
 
 interface Pregnancy {
   id: string
@@ -81,6 +86,8 @@ type Row = {
   isDemo?: boolean
 }
 
+type Filter = "all" | Row["severity"]
+
 const demoRows: Row[] = [
   {
     subjectType: "pregnancy",
@@ -132,72 +139,64 @@ function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}d ago`
 }
 
-function severityLabel(s: Row["severity"]) {
-  return s === "red" ? "Immediate" : s === "yellow" ? "Review" : "Stable"
+function initials(name: string) {
+  return name.split(" ").filter(Boolean).map(n => n[0]).join("").slice(0, 2).toUpperCase()
 }
 
-function severityBadge(s: Row["severity"]) {
-  if (s === "red") return "border-red-500/20 bg-red-500/10 text-red-500"
-  if (s === "yellow") return "border-yellow-500/20 bg-yellow-500/10 text-yellow-500"
-  return "border-emerald-500/20 bg-emerald-500/10 text-emerald-500"
-}
+const ROW_GRID = "md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.6fr)_100px_120px_16px]"
 
-function severityDot(s: Row["severity"]) {
-  return s === "red" ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" : 
-         s === "yellow" ? "bg-yellow-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" : 
-         "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-}
-
-function TriageCard({ row }: { row: Row }) {
-  const shell = (
-    <div className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border bg-[var(--background)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-      row.severity === "red" ? "border-red-500/20 hover:border-red-500/40" :
-      row.severity === "yellow" ? "border-yellow-500/20 hover:border-yellow-500/40" :
-      "border-white/5 hover:border-white/10"
-    }`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className={`h-2 w-2 shrink-0 rounded-full ${severityDot(row.severity)}`} />
-            <span className="truncate text-[15px] font-semibold text-gray-100 group-hover:text-white transition-colors">{row.motherName}</span>
-          </div>
-          <p className="mt-1 truncate text-xs font-medium uppercase tracking-[0.1em] text-gray-400">{row.stage}</p>
-        </div>
-        <span className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${severityBadge(row.severity)}`}>
-          {severityLabel(row.severity)}
+function PatientRow({ row }: { row: Row }) {
+  const Icon = row.subjectType === "pregnancy" ? HeartPulse : Baby
+  const body = (
+    <div
+      className={cn(
+        "group relative grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3.5 sm:px-5",
+        ROW_GRID,
+        "before:absolute before:inset-y-3 before:left-0 before:w-[3px] before:rounded-r-full",
+        SEVERITY_RAIL[row.severity],
+        !row.isDemo && "hover:bg-white/[0.025]"
+      )}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--muted)] text-[11px] font-semibold text-slate-200 ring-1 ring-[var(--hairline)]">
+          {initials(row.motherName)}
         </span>
-      </div>
-
-      {row.latestStatus && (
-        <div className="mt-4 rounded-lg bg-[var(--card)] p-3 border border-white/5">
-          <p className={`text-[13px] font-medium leading-snug ${
-            row.severity === "red" ? "text-red-400" :
-            row.severity === "yellow" ? "text-yellow-400" :
-            "text-gray-300"
-          }`}>
-            {row.latestStatus.message}
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-white">{row.motherName}</p>
+          <p className="flex items-center gap-1 truncate text-xs text-[var(--muted-foreground)]">
+            <Icon className="h-3 w-3 shrink-0" /> {row.stage}
           </p>
         </div>
-      )}
-
-      <div className="mt-4 flex items-center justify-between">
-        <p className="text-[11px] font-medium text-gray-500">
-          {row.lastCheckin ? timeAgo(row.lastCheckin) : "—"}
-        </p>
-        <ArrowRight className={`h-4 w-4 opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-1 ${
-          row.severity === "red" ? "text-red-400" :
-          row.severity === "yellow" ? "text-yellow-400" :
-          "text-emerald-400"
-        }`} />
       </div>
+
+      <p
+        className={cn(
+          "col-span-2 line-clamp-2 text-[13px] leading-snug md:col-span-1",
+          row.severity === "green" ? "text-slate-400" : SEVERITY_TEXT[row.severity]
+        )}
+      >
+        {row.latestStatus?.message || "No check-in yet"}
+      </p>
+
+      <p className="num hidden text-xs text-[var(--muted-foreground)] md:block">
+        {row.lastCheckin ? timeAgo(row.lastCheckin) : "—"}
+      </p>
+
+      <div className="col-start-2 row-start-1 md:col-start-auto md:row-start-auto">
+        <SeverityBadge severity={row.severity} />
+      </div>
+
+      <ChevronRight className="hidden h-4 w-4 text-slate-600 group-hover:text-slate-300 md:block" />
     </div>
   )
 
-  if (row.isDemo) return <div>{shell}</div>
+  if (row.isDemo) return <li>{body}</li>
   return (
-    <Link href={`/doctor/patient/${row.subjectType}/${row.subjectId}`} className="block">
-      {shell}
-    </Link>
+    <li>
+      <Link href={`/doctor/patient/${row.subjectType}/${row.subjectId}`} className="block">
+        {body}
+      </Link>
+    </li>
   )
 }
 
@@ -219,6 +218,7 @@ export function DoctorDashboardClient({
   const [realtimePulse, setRealtimePulse] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isSeeding, setIsSeeding] = useState(false)
+  const [filter, setFilter] = useState<Filter>("all")
 
   const supabase = createClient()
   const router = useRouter()
@@ -282,23 +282,8 @@ export function DoctorDashboardClient({
     }
   }, [pregnancies.length, babyProfiles.length, doctorId])
 
-  const flagsBySubject = flags.reduce(
-    (acc, flag) => {
-      if (!acc[flag.subject_id]) acc[flag.subject_id] = []
-      acc[flag.subject_id].push(flag)
-      return acc
-    },
-    {} as Record<string, Flag[]>
-  )
-
-  const getTopFlag = (subjectId: string): { flag: Flag | null; severity: Row["severity"] } => {
-    const f = flagsBySubject[subjectId] || []
-    const red = f.find(x => x.severity === "red")
-    if (red) return { flag: red, severity: "red" }
-    const yellow = f.find(x => x.severity === "yellow")
-    if (yellow) return { flag: yellow, severity: "yellow" }
-    return { flag: null, severity: "green" }
-  }
+  // Flags are kept in sync via realtime; row severity is driven by the latest check-in.
+  void flags
 
   const rows: Row[] = [
     ...pregnancies.map(p => {
@@ -344,10 +329,6 @@ export function DoctorDashboardClient({
     .sort((a, b) => new Date(b.lastCheckin!).getTime() - new Date(a.lastCheckin!).getTime())
     .slice(0, 5)
 
-  async function signOut() {
-    await signOutAndRedirect(supabase, "/login?role=doctor")
-  }
-
   async function copyCode() {
     if (!inviteCode) return
     await navigator.clipboard.writeText(inviteCode)
@@ -357,310 +338,175 @@ export function DoctorDashboardClient({
 
   if (isSeeding || (pregnancies.length === 0 && babyProfiles.length === 0)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
-        <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">
-          <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[var(--card)] border border-[var(--primary)]/30 shadow-[0_0_40px_rgba(255,255,255,0.1)]">
-            <RefreshCw className="h-8 w-8 text-[var(--primary)] animate-spin" />
-          </div>
-          <div className="text-center space-y-2">
-            <h2 className="text-xl font-bold text-white tracking-tight">Preparing Demo Environment</h2>
-            <p className="text-sm text-gray-400">Generating simulated patients, chat messages, and flags...</p>
-          </div>
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="motion-rise flex max-w-sm flex-col items-center text-center">
+          <LoaderCircle className="h-8 w-8 animate-spin text-[var(--primary)]" />
+          <h2 className="mt-5 text-lg font-semibold text-white">Preparing your workspace</h2>
+          <p className="mt-1.5 text-sm text-[var(--muted-foreground)]">
+            Setting up sample patients, check-ins and messages so you can explore the dashboard.
+          </p>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen bg-[var(--background)] text-gray-100 font-sans selection:bg-[var(--primary)]/30">
-      
-      {/* Header - Solid elevated surface */}
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-[var(--card)] px-6 py-4 shadow-sm">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--background)] border border-white/5">
-              <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-300">MD</span>
-            </div>
-            <div>
-              <p className="text-base font-semibold leading-tight text-white">Dr. {doctorName}</p>
-              <p className="text-[11px] font-medium uppercase tracking-widest text-gray-500">
-                {specialty || "Doctor dashboard"}
-              </p>
-            </div>
-          </div>
+  const filtered = filter === "all" ? displayRows : displayRows.filter(r => r.severity === filter)
+  const filters: Array<{ value: Filter; label: string; count: number }> = [
+    { value: "all", label: "All", count: displayRows.length },
+    { value: "red", label: SEVERITY_LABEL.red, count: redRows.length },
+    { value: "yellow", label: SEVERITY_LABEL.yellow, count: yellowRows.length },
+    { value: "green", label: SEVERITY_LABEL.green, count: greenRows.length },
+  ]
 
-          <div className="flex items-center gap-2">
-            {realtimePulse && (
-              <span className="mr-4 flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-                <RefreshCw className="h-3 w-3 animate-spin" /> Live
-              </span>
+  return (
+    <div className="min-h-screen pb-24 md:pb-0">
+      <AppHeader
+        role="doctor"
+        userName={`Dr. ${doctorName}`}
+        userMeta={specialty || clinicName || undefined}
+        right={
+          <span
+            className={cn(
+              "hidden items-center gap-2 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset sm:inline-flex",
+              realtimePulse ? "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30" : "text-slate-400 ring-[var(--hairline)]"
             )}
-            <Link href="/doctor/messages">
-              <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-400 hover:bg-white/5 hover:text-white">
-                <MessageSquare className="h-4.5 w-4.5" />
-              </Button>
-            </Link>
-            <Link href="/doctor/ask">
-              <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-400 hover:bg-white/5 hover:text-white">
-                <Bot className="h-4.5 w-4.5" />
-              </Button>
-            </Link>
-            <Link href="/doctor/settings">
-              <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-400 hover:bg-white/5 hover:text-white">
-                <Settings className="h-4.5 w-4.5" />
-              </Button>
-            </Link>
-            <div className="mx-2 h-4 w-px bg-white/10" />
-            <Button variant="ghost" size="icon" onClick={signOut} className="h-9 w-9 text-gray-400 hover:bg-red-500/10 hover:text-red-400">
-              <LogOut className="h-4.5 w-4.5" />
+          >
+            <SeverityDot severity="green" />
+            {realtimePulse ? "New update" : "Live"}
+          </span>
+        }
+      />
+
+      <main className="page motion-rise py-8 sm:py-10">
+        {/* Title */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-white sm:text-[28px]">Patient overview</h1>
+            <p className="mt-1 text-[15px] text-[var(--muted-foreground)]">
+              {clinicName ? `${clinicName} · ` : ""}Sorted by clinical priority. Updates arrive in real time.
+            </p>
+          </div>
+          <div className="surface flex items-center justify-between gap-3 py-2 pl-4 pr-2">
+            <div className="leading-tight">
+              <p className="data-label">Referral code</p>
+              <p className="font-mono text-base font-semibold tracking-wider text-white">{inviteCode || "—"}</p>
+            </div>
+            <Button size="sm" variant="secondary" onClick={copyCode} disabled={!inviteCode}>
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? "Copied" : "Copy"}
             </Button>
           </div>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:py-12 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
-        {/* Top Stats - Exact identical dimensions and padding */}
-        <div className="mb-8 grid gap-4 grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              icon: <Users className="h-5 w-5" />,
-              value: linkedMothers,
-              label: "Linked Patients",
-              iconColor: "text-blue-400",
-              iconBg: "bg-blue-500/10",
-              valueColor: "text-white"
-            },
-            {
-              icon: <Siren className="h-5 w-5" />,
-              value: redRows.length,
-              label: "Critical",
-              iconColor: "text-red-500",
-              iconBg: "bg-red-500/10",
-              valueColor: redRows.length > 0 ? "text-red-500" : "text-white"
-            },
-            {
-              icon: <AlertTriangle className="h-5 w-5" />,
-              value: yellowRows.length,
-              label: "Review Soon",
-              iconColor: "text-yellow-500",
-              iconBg: "bg-yellow-500/10",
-              valueColor: yellowRows.length > 0 ? "text-yellow-500" : "text-white"
-            },
-            {
-              icon: <ShieldCheck className="h-5 w-5" />,
-              value: greenRows.length,
-              label: "Stable",
-              iconColor: "text-emerald-500",
-              iconBg: "bg-emerald-500/10",
-              valueColor: "text-white"
-            },
-          ].map((stat, idx) => (
-            <div key={idx} className="flex flex-col justify-center rounded-xl border border-white/5 bg-[var(--card)] p-6 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${stat.iconBg} ${stat.iconColor}`}>
-                  {stat.icon}
-                </div>
-                <div>
-                  <p className={`text-3xl font-bold leading-none tracking-tight ${stat.valueColor}`}>{stat.value}</p>
-                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-                    {stat.label}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* KPIs */}
+        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatTile label="Linked patients" value={linkedMothers} icon={<Users className="h-4 w-4" />} />
+          <StatTile label="Urgent" value={redRows.length} tone="red" icon={<Siren className="h-4 w-4" />} hint="Review now" />
+          <StatTile label="Review soon" value={yellowRows.length} tone="yellow" icon={<AlertTriangle className="h-4 w-4" />} hint="Within 24 hours" />
+          <StatTile label="Stable" value={greenRows.length} tone="green" icon={<ShieldCheck className="h-4 w-4" />} hint="Routine follow-up" />
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-          {/* Main Workspace */}
-          <div className="space-y-8">
-            
-            {/* Invite Hero - The single allowed glass/photo element */}
-            <section className="relative overflow-hidden rounded-xl border border-white/5 bg-[var(--card)] shadow-md group h-48">
-              <div
-                className="absolute inset-0 bg-cover bg-center mix-blend-luminosity opacity-40 transition-transform duration-700 group-hover:scale-105"
-                style={{ backgroundImage: `url(${DOCTOR_IMAGE})` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[var(--card)] via-[var(--card)] to-transparent" />
-              <div className="absolute inset-0 bg-black/20" />
-              
-              <div className="relative flex h-full flex-col justify-center p-8 lg:w-2/3">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--primary)]">
-                  Referral Code
-                </p>
-                <div className="mt-2 flex items-end gap-6">
-                  <h3 className="text-4xl font-black tracking-widest text-white">
-                    {inviteCode || "—"}
-                  </h3>
-                  <Button
-                    onClick={copyCode}
-                    disabled={!inviteCode}
-                    className="mb-1 rounded-md bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 px-6 font-semibold"
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+          {/* Triage queue */}
+          <section className="surface overflow-hidden">
+            <div className="flex flex-col gap-3 border-b border-[var(--hairline)] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-white">Triage queue</h2>
+                {rows.length === 0 ? (
+                  <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Demo</span>
+                ) : null}
+              </div>
+              <div className="-mx-1 flex gap-1 overflow-x-auto px-1" role="tablist" aria-label="Filter by priority">
+                {filters.map(f => (
+                  <button
+                    key={f.value}
+                    role="tab"
+                    aria-selected={filter === f.value}
+                    onClick={() => setFilter(f.value)}
+                    className={cn(
+                      "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium",
+                      filter === f.value ? "bg-white/[0.08] text-white" : "text-[var(--muted-foreground)] hover:text-white"
+                    )}
                   >
-                    <Copy className="mr-2 h-4 w-4" />
-                    {copied ? "Copied" : "Copy"}
-                  </Button>
-                </div>
-                <p className="mt-3 text-sm text-gray-300">
-                  {clinicName ? `${clinicName} • Share this code with new patients` : "Share this code to link patients"}
-                </p>
+                    {f.value !== "all" ? <SeverityDot severity={f.value} className="h-1.5 w-1.5" /> : null}
+                    {f.label}
+                    <span className="num text-slate-500">{f.count}</span>
+                  </button>
+                ))}
               </div>
-            </section>
+            </div>
 
-            {/* Triage Board - The Primary Workflow */}
-            <section>
-              <div className="mb-6 flex items-baseline justify-between border-b border-white/5 pb-4">
-                <h2 className="font-display text-2xl font-bold text-white tracking-tight">Patient Queue</h2>
-                <span className="rounded bg-white/5 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                  {rows.length > 0 ? "Live Data" : "Demo"}
-                </span>
-              </div>
+            <div className={cn("hidden gap-x-4 border-b border-[var(--hairline)] bg-black/10 px-5 py-2 md:grid", ROW_GRID)}>
+              {["Patient", "Latest report", "Last check-in", "Priority", ""].map((h, i) => (
+                <p key={i} className="data-label">{h}</p>
+              ))}
+            </div>
 
-              <div className="grid gap-4 lg:grid-cols-3">
-                {/* Red Lane */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between rounded-lg bg-red-500/10 px-4 py-3 border border-red-500/20">
-                    <div className="flex items-center gap-2">
-                      <Siren className="h-4 w-4 text-red-500" />
-                      <h3 className="text-[11px] font-bold uppercase tracking-widest text-red-500">Immediate</h3>
-                    </div>
-                    <span className="text-sm font-bold text-red-400">{redRows.length}</span>
-                  </div>
-                  
-                  {redRows.length > 0 ? (
-                    <div className="flex flex-col gap-3">
-                      {redRows.map(row => <TriageCard key={`red-${row.subjectId}`} row={row} />)}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center rounded-lg border border-white/5 bg-[var(--card)] py-6">
-                      <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-600">Clear</p>
-                    </div>
-                  )}
-                </div>
+            {filtered.length > 0 ? (
+              <ul className="divide-y divide-[var(--hairline)]">
+                {filtered.map(row => <PatientRow key={`${row.subjectType}-${row.subjectId}`} row={row} />)}
+              </ul>
+            ) : (
+              <EmptyState
+                className="m-5 border-0"
+                icon={<ShieldCheck className="h-5 w-5" />}
+                title="No patients in this lane"
+                description="Everyone here has been triaged elsewhere."
+              />
+            )}
+          </section>
 
-                {/* Yellow Lane */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between rounded-lg bg-yellow-500/10 px-4 py-3 border border-yellow-500/20">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                      <h3 className="text-[11px] font-bold uppercase tracking-widest text-yellow-500">Review</h3>
-                    </div>
-                    <span className="text-sm font-bold text-yellow-400">{yellowRows.length}</span>
-                  </div>
-                  
-                  {yellowRows.length > 0 ? (
-                    <div className="flex flex-col gap-3">
-                      {yellowRows.map(row => <TriageCard key={`yellow-${row.subjectId}`} row={row} />)}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center rounded-lg border border-white/5 bg-[var(--card)] py-6">
-                      <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-600">Clear</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Green Lane */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between rounded-lg bg-emerald-500/10 px-4 py-3 border border-emerald-500/20">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                      <h3 className="text-[11px] font-bold uppercase tracking-widest text-emerald-500">Stable</h3>
-                    </div>
-                    <span className="text-sm font-bold text-emerald-400">{greenRows.length}</span>
-                  </div>
-                  
-                  {greenRows.length > 0 ? (
-                    <div className="flex flex-col gap-3">
-                      {greenRows.map(row => <TriageCard key={`green-${row.subjectId}`} row={row} />)}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center rounded-lg border border-white/5 bg-[var(--card)] py-6">
-                      <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-600">Clear</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-          </div>
-
-          {/* Right Sidebar */}
-          <aside className="space-y-6">
-            
-            <section className="rounded-xl border border-white/5 bg-[var(--card)] p-6 shadow-sm">
-              <h3 className="font-display text-lg font-bold text-white mb-4">Quick Actions</h3>
-              <div className="flex flex-col gap-3">
-                <Link href="/doctor/ask" className="group flex items-center justify-between rounded-lg border border-white/5 bg-[var(--background)] p-4 hover:border-white/10 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <Bot className="h-5 w-5 text-gray-400 group-hover:text-white transition-colors" />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-100">AI Assistant</p>
-                      <p className="text-[11px] font-medium text-gray-500">Clinical insights</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-gray-600 group-hover:text-white" />
-                </Link>
-
-                <Link href="/doctor/settings" className="group flex items-center justify-between rounded-lg border border-white/5 bg-[var(--background)] p-4 hover:border-white/10 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <Settings className="h-5 w-5 text-gray-400 group-hover:text-white transition-colors" />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-100">Settings</p>
-                      <p className="text-[11px] font-medium text-gray-500">Manage profile</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-gray-600 group-hover:text-white" />
-                </Link>
-              </div>
-            </section>
-
-            <section className="rounded-xl border border-white/5 bg-[var(--card)] p-6 shadow-sm">
-              <div className="mb-5 flex items-center gap-2">
-                <Activity className="h-4 w-4 text-gray-400" />
-                <h3 className="font-display text-lg font-bold text-white">Recent Updates</h3>
-              </div>
-
+          {/* Sidebar */}
+          <aside className="space-y-4">
+            <section className="surface p-5">
+              <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-white">
+                <Activity className="h-4 w-4 text-[var(--muted-foreground)]" /> Recent activity
+              </h2>
               {recentFeed.length > 0 ? (
-                <div className="flex flex-col gap-3">
+                <ol className="space-y-3.5">
                   {recentFeed.map(row => (
-                    <Link
-                      key={`feed-${row.subjectId}`}
-                      href={row.isDemo ? "#" : `/doctor/patient/${row.subjectType}/${row.subjectId}`}
-                      className="group flex flex-col gap-2 rounded-lg border border-white/5 bg-[var(--background)] p-4 hover:border-white/10 transition-colors"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`h-2 w-2 rounded-full ${severityDot(row.severity)}`} />
-                          <p className="truncate text-sm font-semibold text-gray-100 group-hover:text-white">
-                            {row.motherName}
-                          </p>
+                    <li key={`feed-${row.subjectId}`}>
+                      <Link
+                        href={row.isDemo ? "#" : `/doctor/patient/${row.subjectType}/${row.subjectId}`}
+                        className="group flex items-start gap-3"
+                      >
+                        <SeverityDot severity={row.severity} className="mt-1.5" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <p className="truncate text-sm font-medium text-slate-100 group-hover:text-white">{row.motherName}</p>
+                            <span className="num shrink-0 text-[11px] text-slate-500">{row.lastCheckin ? timeAgo(row.lastCheckin) : "—"}</span>
+                          </div>
+                          <p className="truncate text-xs text-[var(--muted-foreground)]">{row.stage}</p>
                         </div>
-                        <span className={`shrink-0 rounded text-[9px] font-bold uppercase tracking-wider ${
-                          row.severity === "red" ? "text-red-400" :
-                          row.severity === "yellow" ? "text-yellow-400" :
-                          "text-emerald-400"
-                        }`}>
-                          {severityLabel(row.severity)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-[11px] font-medium text-gray-400">
-                          {row.stage}
-                        </p>
-                        <p className="text-[10px] font-medium text-gray-500">
-                          {row.lastCheckin ? timeAgo(row.lastCheckin) : "—"}
-                        </p>
-                      </div>
-                    </Link>
+                      </Link>
+                    </li>
                   ))}
-                </div>
+                </ol>
               ) : (
-                <div className="rounded-lg border border-dashed border-white/5 bg-[var(--background)] p-6 text-center">
-                  <p className="text-[12px] font-medium text-gray-500">No recent activity.</p>
-                </div>
+                <p className="text-sm text-[var(--muted-foreground)]">No recent activity.</p>
               )}
             </section>
 
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+              <Link href="/doctor/ask" className="surface flex items-center gap-3 p-4 hover:border-[var(--primary-line)]">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
+                  <Bot className="h-[18px] w-[18px]" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white">Clinical copilot</p>
+                  <p className="hidden truncate text-xs text-[var(--muted-foreground)] sm:block">Triage & follow-up support</p>
+                </div>
+              </Link>
+              <Link href="/doctor/messages" className="surface flex items-center gap-3 p-4 hover:border-slate-500">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.05] text-slate-300">
+                  <MessageSquare className="h-[18px] w-[18px]" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white">Messages</p>
+                  <p className="hidden truncate text-xs text-[var(--muted-foreground)] sm:block">Chat with linked mothers</p>
+                </div>
+              </Link>
+            </div>
           </aside>
         </div>
       </main>

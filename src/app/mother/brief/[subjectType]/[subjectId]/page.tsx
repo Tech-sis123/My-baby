@@ -1,12 +1,14 @@
-import Link from "next/link"
 import { redirect } from "next/navigation"
+import { AlertTriangle, CalendarDays, ClipboardList } from "lucide-react"
+import { SubHeader } from "@/components/app/sub-header"
 import {
-  AlertTriangle,
-  ArrowLeft,
-  CalendarDays,
-  ClipboardList,
-  ShieldCheck,
-} from "lucide-react"
+  DataField,
+  EmptyState,
+  Notice,
+  SEVERITY_TEXT,
+  SectionHeading,
+  severityTone,
+} from "@/components/app/status"
 import { MedicalFooter } from "@/components/medical-footer"
 import { createClient } from "@/lib/supabase/server"
 import { formatStage } from "@/lib/utils"
@@ -60,12 +62,6 @@ function formatDateTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   })
-}
-
-function severityBadge(severity: FlagRow["severity"]): string {
-  if (severity === "red") return "border-red-400/30 bg-red-500/12 text-red-100"
-  if (severity === "yellow") return "border-yellow-400/30 bg-yellow-500/12 text-yellow-100"
-  return "border-emerald-400/30 bg-emerald-500/12 text-emerald-100"
 }
 
 function topSeverity(flags: FlagRow[]): "red" | "yellow" | "green" {
@@ -192,190 +188,136 @@ export default async function PreVisitBriefPage({
   const latestCheckin = checkinRows[0] || null
   const flagSeverity = topSeverity(activeFlags)
 
-  return (
-    <div className="min-h-screen pb-24 print:bg-white print:pb-0">
-      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(43,37,31,0.88)] px-4 py-3 backdrop-blur print:hidden">
-        <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/mother/home"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]">Pre-visit brief</p>
-              <h1 className="text-base font-semibold text-white">{stage}</h1>
-            </div>
-          </div>
-          <PrintButton />
-        </div>
-      </header>
+  const summary = [
+    { label: "Active alerts", value: activeFlags.length, cls: activeFlags.length > 0 ? SEVERITY_TEXT[flagSeverity] : "" },
+    { label: "Check-ins (7 days)", value: checkinRows.length, cls: "" },
+    { label: "Next visit", value: upcomingAppointments.length > 0 ? formatDate(upcomingAppointments[0].scheduled_at) : "None", cls: "" },
+    { label: "Doctor", value: doctor?.clinic_name || (subject.linked_doctor_id ? "Linked" : "Not linked"), cls: "" },
+  ]
 
-      {/* Quick-read summary strip */}
-      <div className="border-b border-[var(--border)] bg-[rgba(73,60,51,0.5)] print:hidden">
-        <div className="mx-auto flex w-full max-w-4xl flex-wrap divide-x divide-[var(--border)]">
-          {[
-            {
-              label: "Active alerts",
-              value: activeFlags.length,
-              tone: activeFlags.length > 0 && flagSeverity === "red" ? "text-red-100" : "text-white",
-            },
-            { label: "Check-ins (7d)", value: checkinRows.length, tone: "text-white" },
-            {
-              label: "Next visit",
-              value: upcomingAppointments.length > 0 ? formatDate(upcomingAppointments[0].scheduled_at) : "None",
-              tone: "text-white",
-            },
-            {
-              label: "Doctor",
-              value: doctor?.clinic_name || (subject.linked_doctor_id ? "Linked" : "None"),
-              tone: "text-white",
-            },
-          ].map(stat => (
-            <div key={stat.label} className="flex-1 px-4 py-3">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--muted-foreground)]">{stat.label}</p>
-              <p className={`mt-0.5 text-sm font-semibold ${stat.tone}`}>{stat.value}</p>
+  return (
+    <div className="min-h-screen print:bg-white">
+      <SubHeader
+        backHref="/mother/home"
+        eyebrow="Pre-visit brief"
+        title={stage}
+        actions={<PrintButton />}
+      />
+
+      <main className="page motion-rise max-w-5xl py-8 print:max-w-none print:p-0 print:text-slate-900">
+        {/* Document header */}
+        <div className="flex flex-col gap-2 border-b border-[var(--hairline)] pb-6 sm:flex-row sm:items-end sm:justify-between print:border-slate-300">
+          <div>
+            <p className="eyebrow print:text-slate-500">{subjectType === "pregnancy" ? "Pregnancy" : "Baby"} · Summary for your clinician</p>
+            <h1 className="mt-1 text-2xl font-semibold text-white print:text-black">{stage}</h1>
+          </div>
+          <p className="text-[13px] text-[var(--muted-foreground)] print:text-slate-600">
+            Generated {formatDate(new Date().toISOString())}
+          </p>
+        </div>
+
+        {/* Summary */}
+        <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {summary.map(item => (
+            <div key={item.label} className="surface p-4 print:rounded-none print:border-slate-300 print:bg-white">
+              <p className="data-label print:text-slate-500">{item.label}</p>
+              <p className={`num mt-1 truncate text-lg font-semibold text-white print:text-black ${item.cls}`}>{item.value}</p>
             </div>
           ))}
-        </div>
-      </div>
-
-      <div className="mx-auto grid w-full max-w-4xl gap-6 px-4 py-6 2xl:grid-cols-[1.2fr_0.8fr] print:max-w-none print:px-0 print:py-0">
-
-        {/* Check-in history */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)] print:text-slate-600">
-              <ClipboardList className="h-3.5 w-3.5 print:hidden" /> Last 7 days
-            </div>
-            <span className="text-xs text-[var(--muted-foreground)] print:hidden">
-              {checkinRows.length} entries
-            </span>
-          </div>
-
-          {checkinRows.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-5 text-sm leading-6 text-[var(--muted-foreground)] print:border-slate-200 print:bg-white print:text-slate-700">
-              No check-ins recorded in the last 7 days.
-            </div>
-          ) : (
-            checkinRows.map(checkin => {
-              const details = summaryItems(subjectType, checkin.payload)
-              const note = typeof checkin.payload?.note === "string" ? checkin.payload.note : null
-
-              return (
-                <div
-                  key={checkin.id}
-                  className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4 print:rounded-none print:border-slate-200 print:bg-white"
-                >
-                  <p className="text-sm font-semibold text-white print:text-black">{formatDateTime(checkin.created_at)}</p>
-                  <p className="mt-0.5 text-xs text-[var(--muted-foreground)] print:text-slate-600">
-                    {subjectType === "pregnancy" ? "Pregnancy" : "Baby"} check-in
-                  </p>
-
-                  {details.length > 0 ? (
-                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                      {details.map(detail => (
-                        <div
-                          key={`${checkin.id}-${detail.label}`}
-                          className="rounded-lg border border-[var(--border)] bg-[rgba(42,34,28,0.35)] px-3 py-2 print:rounded-none print:border-slate-200 print:bg-white"
-                        >
-                          <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)] print:text-slate-600">
-                            {detail.label}
-                          </p>
-                          <p className="mt-1 text-xs font-medium capitalize text-white print:text-slate-900">{detail.value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {note ? (
-                    <div className="mt-3 rounded-lg border border-[var(--border)] bg-[rgba(42,34,28,0.35)] px-3 py-2 print:rounded-none print:border-slate-200 print:bg-white">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)] print:text-slate-600">Note</p>
-                      <p className="mt-1 text-xs leading-5 text-white print:text-slate-900">{note}</p>
-                    </div>
-                  ) : null}
-                </div>
-              )
-            })
-          )}
         </section>
 
-        {/* Sidebar: alerts + appointments */}
-        <aside className="space-y-4 print:space-y-6">
-
-          {/* Active alerts */}
+        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          {/* Check-in history */}
           <section>
-            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)] print:text-slate-600">
-              <AlertTriangle className="h-3.5 w-3.5 print:hidden" /> Active alerts
-            </div>
-            <div className="space-y-2">
-              {activeFlags.length > 0 ? (
-                activeFlags.slice(0, 4).map(flag => (
-                  <div
-                    key={flag.id}
-                    className={`rounded-xl border px-4 py-3 text-sm leading-6 print:rounded-none ${severityBadge(flag.severity)}`}
-                  >
-                    {flag.message}
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-100 print:rounded-none print:border-slate-200 print:bg-white print:text-slate-700">
-                  No active alerts right now.
-                </div>
-              )}
-            </div>
+            <SectionHeading
+              title="Last 7 days"
+              icon={<ClipboardList className="h-4 w-4 print:hidden" />}
+              action={<span className="text-xs text-[var(--muted-foreground)]">{checkinRows.length} entries</span>}
+            />
+
+            {checkinRows.length === 0 ? (
+              <EmptyState icon={<ClipboardList className="h-5 w-5" />} title="No check-ins in the last 7 days" />
+            ) : (
+              <div className="space-y-3">
+                {checkinRows.map(checkin => {
+                  const details = summaryItems(subjectType, checkin.payload)
+                  const note = typeof checkin.payload?.note === "string" ? checkin.payload.note : null
+
+                  return (
+                    <article key={checkin.id} className="surface p-4 print:break-inside-avoid print:rounded-none print:border-slate-300 print:bg-white">
+                      <p className="text-sm font-semibold text-white print:text-black">{formatDateTime(checkin.created_at)}</p>
+
+                      {details.length > 0 ? (
+                        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {details.map(detail => (
+                            <DataField
+                              key={`${checkin.id}-${detail.label}`}
+                              label={detail.label}
+                              value={detail.value}
+                              className="print:rounded-none print:border-slate-200 print:bg-white [&_p:last-child]:print:text-black"
+                            />
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {note ? (
+                        <p className="mt-3 rounded-lg bg-white/[0.03] px-3 py-2.5 text-[13px] leading-relaxed text-slate-200 print:bg-white print:px-0 print:text-slate-800">
+                          <span className="font-medium">Note: </span>{note}
+                        </p>
+                      ) : null}
+                    </article>
+                  )
+                })}
+              </div>
+            )}
           </section>
 
-          {/* Latest check-in */}
-          {latestCheckin ? (
-            <div className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] px-4 py-3 text-sm text-white print:rounded-none print:border-slate-200 print:bg-white print:text-slate-800">
-              <span className="text-[var(--muted-foreground)] print:text-slate-600">Latest check-in: </span>
-              {formatDateTime(latestCheckin.created_at)}
-            </div>
-          ) : null}
+          {/* Sidebar */}
+          <aside className="space-y-8">
+            <section>
+              <SectionHeading title="Active alerts" icon={<AlertTriangle className="h-4 w-4 print:hidden" />} />
+              <div className="space-y-2">
+                {activeFlags.length > 0 ? (
+                  activeFlags.slice(0, 4).map(flag => (
+                    <Notice key={flag.id} tone={severityTone(flag.severity)} className="print:rounded-none print:border-slate-300 print:bg-white print:text-black">
+                      {flag.message}
+                    </Notice>
+                  ))
+                ) : (
+                  <Notice tone="success" className="print:rounded-none print:border-slate-300 print:bg-white print:text-black">
+                    No active alerts right now.
+                  </Notice>
+                )}
+              </div>
+            </section>
 
-          {/* Upcoming appointments */}
-          <section>
-            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)] print:text-slate-600">
-              <CalendarDays className="h-3.5 w-3.5 print:hidden" /> Upcoming visits
-            </div>
-            <div className="space-y-2">
+            <section>
+              <SectionHeading title="Upcoming visits" icon={<CalendarDays className="h-4 w-4 print:hidden" />} />
               {upcomingAppointments.length > 0 ? (
-                upcomingAppointments.map(appointment => (
-                  <div
-                    key={appointment.id}
-                    className="rounded-xl border border-[var(--border)] bg-[rgba(255,248,239,0.05)] px-4 py-3 print:rounded-none print:border-slate-200 print:bg-white"
-                  >
-                    <p className="text-sm font-semibold text-white print:text-black">{appointment.title}</p>
-                    <p className="mt-1 text-xs text-[var(--muted-foreground)] print:text-slate-600">
-                      {formatDateTime(appointment.scheduled_at)}
-                    </p>
-                    {appointment.notes ? (
-                      <p className="mt-2 text-xs leading-5 text-white print:text-slate-900">{appointment.notes}</p>
-                    ) : null}
-                  </div>
-                ))
+                <ul className="space-y-2">
+                  {upcomingAppointments.map(appointment => (
+                    <li key={appointment.id} className="surface p-3.5 print:rounded-none print:border-slate-300 print:bg-white">
+                      <p className="text-sm font-semibold text-white print:text-black">{appointment.title}</p>
+                      <p className="mt-0.5 text-xs text-[var(--muted-foreground)] print:text-slate-600">{formatDateTime(appointment.scheduled_at)}</p>
+                      {appointment.notes ? <p className="mt-2 text-[13px] text-slate-300 print:text-slate-800">{appointment.notes}</p> : null}
+                    </li>
+                  ))}
+                </ul>
               ) : (
-                <div className="rounded-xl border border-dashed border-[var(--border)] bg-[rgba(255,248,239,0.04)] px-4 py-3 text-sm text-[var(--muted-foreground)] print:rounded-none print:border-slate-200 print:bg-white print:text-slate-700">
-                  No upcoming visit linked.
-                </div>
+                <p className="text-sm text-[var(--muted-foreground)]">No upcoming visit linked.</p>
               )}
-            </div>
-          </section>
+            </section>
 
-          <div className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] px-4 py-3 print:hidden">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-              <ShieldCheck className="h-3.5 w-3.5" /> Generated
-            </div>
-            <p className="mt-2 text-xs text-[var(--muted-foreground)]">{formatDate(new Date().toISOString())}</p>
-          </div>
-        </aside>
-      </div>
+            {latestCheckin ? (
+              <p className="text-[13px] text-[var(--muted-foreground)] print:text-slate-600">
+                Latest check-in: <span className="text-slate-200 print:text-black">{formatDateTime(latestCheckin.created_at)}</span>
+              </p>
+            ) : null}
+          </aside>
+        </div>
+      </main>
 
-      <div className="print:hidden">
-        <MedicalFooter />
-      </div>
+      <MedicalFooter />
     </div>
   )
 }

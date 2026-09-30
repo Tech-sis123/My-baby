@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { CalendarClock, CheckCircle2, ChevronDown, LoaderCircle, Plus } from "lucide-react"
+import { Notice } from "@/components/app/status"
+import { CalendarClock, LoaderCircle, Plus } from "lucide-react"
 
 interface Props {
   motherId: string
@@ -53,7 +54,7 @@ export function ScheduleCallbackForm({ motherId, doctorId, subjectType, subjectI
       return
     }
 
-    setSaved("Callback scheduled and added to this patient timeline.")
+    setSaved("Callback scheduled and added to this patient's record.")
     setTitle("")
     setScheduledAt("")
     setNotes("")
@@ -62,52 +63,30 @@ export function ScheduleCallbackForm({ motherId, doctorId, subjectType, subjectI
   }
 
   return (
-    <section className="rounded-[1.8rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-5">
-      <div className="flex flex-col gap-4 border-b border-[var(--border)] pb-5 sm:flex-row sm:items-start sm:justify-between">
+    <section className="surface p-5">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--primary)]">
-            <CalendarClock className="h-4 w-4" /> Callback planner
-          </div>
-          <h3 className="mt-2 text-2xl font-semibold text-white">Book the next touchpoint</h3>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
-            Schedule a phone call or review slot for this linked mother and care track without leaving the case.
-          </p>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+            <CalendarClock className="h-4 w-4 text-[var(--primary)]" /> Book a callback
+          </h2>
+          <p className="mt-1 text-[13px] text-[var(--muted-foreground)]">Schedule the next call or review for this patient.</p>
         </div>
-
-        <Button
-          type="button"
-          variant={open ? "outline" : "default"}
-          onClick={() => {
-            setOpen(value => !value)
-            setError("")
-          }}
-          className={open ? "border-[var(--border)] bg-transparent text-white" : ""}
-        >
-          {open ? <ChevronDown className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {open ? "Hide form" : "Schedule callback"}
-        </Button>
+        {!open ? (
+          <Button size="sm" onClick={() => { setOpen(true); setError(""); setSaved("") }}>
+            <Plus className="h-3.5 w-3.5" /> New
+          </Button>
+        ) : null}
       </div>
 
-      {saved ? (
-        <div className="mt-4 rounded-[1.25rem] border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>{saved}</span>
-          </div>
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="mt-4 rounded-[1.25rem] border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-          {error}
-        </div>
-      ) : null}
+      {saved ? <Notice tone="success" className="mt-4">{saved}</Notice> : null}
+      {error ? <Notice tone="error" className="mt-4">{error}</Notice> : null}
 
       {open ? (
-        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        <div className="mt-5 space-y-4 border-t border-[var(--hairline)] pt-5">
           <div className="space-y-2">
-            <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Title</Label>
+            <Label htmlFor="cb-title">Title</Label>
             <Input
+              id="cb-title"
               placeholder="Post-check-in review call"
               value={title}
               onChange={event => setTitle(event.target.value)}
@@ -115,51 +94,43 @@ export function ScheduleCallbackForm({ motherId, doctorId, subjectType, subjectI
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Date and time</Label>
+            <Label htmlFor="cb-time">Date and time</Label>
             <Input
+              id="cb-time"
               type="datetime-local"
               value={scheduledAt}
               onChange={event => setScheduledAt(event.target.value)}
             />
           </div>
 
-          <div className="space-y-2 lg:col-span-2">
-            <Label className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
-              Notes
-            </Label>
+          <div className="space-y-2">
+            <Label htmlFor="cb-notes">Notes <span className="font-normal text-slate-500">(optional)</span></Label>
             <Textarea
-              placeholder="What should be reviewed on the call, and what triggered it?"
+              id="cb-notes"
+              placeholder="What should be reviewed, and what triggered it?"
               value={notes}
               onChange={event => setNotes(event.target.value)}
-              className="min-h-[120px]"
             />
           </div>
 
-          <div className="flex flex-col gap-3 lg:col-span-2 sm:flex-row">
-            <Button onClick={save} disabled={loading} className="sm:flex-1">
-              {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CalendarClock className="h-4 w-4" />}
-              {loading ? "Saving appointment" : "Save appointment"}
+          <div className="flex gap-2">
+            <Button onClick={save} disabled={loading} className="flex-1">
+              {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+              {loading ? "Saving…" : "Save callback"}
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={() => {
                 setOpen(false)
                 setError("")
               }}
-              className="border-[var(--border)] bg-transparent text-white sm:flex-1"
             >
               Cancel
             </Button>
           </div>
         </div>
-      ) : (
-        <div className="mt-5 rounded-[1.35rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-4">
-          <p className="text-sm leading-6 text-[var(--muted-foreground)]">
-            Keep the next action explicit. Booking a callback here makes the doctor side feel operational instead of passive.
-          </p>
-        </div>
-      )}
+      ) : null}
     </section>
   )
 }

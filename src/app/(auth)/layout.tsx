@@ -1,68 +1,73 @@
 import Image from "next/image"
-import Link from "next/link"
+import { BellRing, ClipboardCheck, Link2 } from "lucide-react"
+import { Brand } from "@/components/app/brand"
 
 const AUTH_IMAGE =
   "https://images.pexels.com/photos/19957214/pexels-photo-19957214.jpeg?auto=compress&cs=tinysrgb&w=1200"
 
+const points = [
+  { icon: ClipboardCheck, title: "60-second check-ins", body: "Quick daily questions tuned to pregnancy or baby stage." },
+  { icon: BellRing, title: "Real-time alerts", body: "Warning signs reach the linked doctor immediately." },
+  { icon: Link2, title: "One referral code", body: "Connects every patient to the right clinician." },
+]
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen px-4 py-10">
-      <div className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-7xl overflow-hidden rounded-[2rem] border border-[rgba(255,248,239,0.12)] bg-[rgba(255,248,239,0.08)] shadow-[0_24px_70px_rgba(0,0,0,0.22)] backdrop-blur lg:grid-cols-[1.1fr_0.9fr]">
-        {/* Left — full-bleed image panel */}
-        <section className="relative hidden overflow-hidden lg:block">
-          <Image
-            src={AUTH_IMAGE}
-            alt="Doctor on a telehealth call"
-            fill
-            sizes="(min-width: 1024px) 55vw, 100vw"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-            priority
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(160deg,rgba(43,37,31,0.18),rgba(43,37,31,0.86))]" />
+    <main className="grid min-h-screen lg:grid-cols-[1fr_1fr] xl:grid-cols-[1.1fr_0.9fr]">
+      {/* Left — brand panel */}
+      <section className="relative hidden overflow-hidden border-r border-[var(--hairline)] lg:block">
+        <Image
+          src={AUTH_IMAGE}
+          alt="Doctor on a telehealth call"
+          fill
+          sizes="55vw"
+          className="object-cover object-center opacity-40"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#111827]/70 via-[#111827]/80 to-[#111827]" />
 
-          <div className="relative flex h-full flex-col justify-between p-10">
-            <Link href="/" className="inline-flex items-center gap-3 self-start">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(255,248,239,0.22)] bg-[rgba(255,248,239,0.12)] text-[10px] font-semibold tracking-[0.28em] text-[#fff3e2]">
-                MB
-              </span>
-              <span className="font-display text-xl font-semibold text-white">My Baby</span>
-            </Link>
+        <div className="relative flex h-full flex-col justify-between p-10 xl:p-14">
+          <Brand tagline="Maternal & child health" />
 
-            <div className="max-w-md">
-              <p className="text-[11px] uppercase tracking-[0.34em] text-[#f0d2b5]">
-                Continuous care, Nigeria
-              </p>
-              <h2 className="mt-4 font-display text-4xl font-semibold leading-[1.08] text-white">
-                The watch between clinic visits.
-              </h2>
-              <p className="mt-5 text-sm leading-7 text-[rgba(255,255,255,0.7)]">
-                Mothers check in daily. Doctors see red flags in real time. One invite code connects them — no wait, no missed signs.
-              </p>
+          <div className="max-w-md">
+            <h2 className="text-3xl font-semibold leading-tight text-white xl:text-4xl">
+              The watch between clinic visits.
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-slate-300">
+              Mothers check in daily. Doctors see red flags in real time. One code connects them.
+            </p>
 
-              <div className="mt-8 grid grid-cols-3 gap-3">
-                {[
-                  { label: "60-second", sub: "daily check-in" },
-                  { label: "Real-time", sub: "doctor alerts" },
-                  { label: "One code", sub: "links everything" },
-                ].map(item => (
-                  <div
-                    key={item.label}
-                    className="rounded-xl border border-[rgba(255,248,239,0.14)] bg-[rgba(255,248,239,0.08)] px-3 py-3 backdrop-blur"
-                  >
-                    <p className="text-sm font-semibold text-white">{item.label}</p>
-                    <p className="mt-0.5 text-[11px] text-[rgba(255,255,255,0.6)]">{item.sub}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ul className="mt-10 space-y-5">
+              {points.map(point => {
+                const Icon = point.icon
+                return (
+                  <li key={point.title} className="flex gap-3.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-[var(--primary)] ring-1 ring-white/10">
+                      <Icon className="h-[18px] w-[18px]" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{point.title}</p>
+                      <p className="mt-0.5 text-[13px] text-slate-400">{point.body}</p>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
           </div>
-        </section>
 
-        {/* Right — form */}
-        <section className="flex items-center justify-center p-6 lg:p-10">
-          <div className="w-full max-w-md">{children}</div>
-        </section>
-      </div>
+          <p className="text-xs text-slate-500">Not an emergency service. In an emergency, go to the nearest hospital.</p>
+        </div>
+      </section>
+
+      {/* Right — form */}
+      <section className="flex flex-col px-5 py-8 sm:px-10">
+        <div className="lg:hidden">
+          <Brand tagline="Maternal & child health" />
+        </div>
+        <div className="flex flex-1 items-center justify-center py-10">
+          <div className="motion-rise w-full max-w-[400px]">{children}</div>
+        </div>
+      </section>
     </main>
   )
 }

@@ -2,39 +2,16 @@
 
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Baby, HeartPulse, Sparkles } from "lucide-react"
+import { Baby, LoaderCircle, PartyPopper } from "lucide-react"
+import { SubHeader } from "@/components/app/sub-header"
+import { OptionTile } from "@/components/app/option-tile"
+import { Notice } from "@/components/app/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 
 type Gender = "girl" | "boy" | ""
-
-function OptionButton({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean
-  onClick: () => void
-  label: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-xl border px-4 py-2.5 text-sm font-medium transition",
-        active
-          ? "border-[rgba(201,139,88,0.5)] bg-[rgba(201,139,88,0.14)] text-white"
-          : "border-[var(--border)] bg-[rgba(255,248,239,0.05)] text-[var(--muted-foreground)] hover:text-white"
-      )}
-    >
-      {label}
-    </button>
-  )
-}
 
 export default function DeliveryPage() {
   const router = useRouter()
@@ -102,103 +79,59 @@ export default function DeliveryPage() {
   }
 
   return (
-    <div className="min-h-screen pb-24">
-      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(43,37,31,0.88)] px-4 py-3 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-lg items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]">Delivery handoff</p>
-            <h1 className="text-base font-semibold text-white">Move to baby care</h1>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen">
+      <SubHeader backHref="/mother/home" width="narrow" eyebrow="Delivery update" title="Move to baby care" />
 
-      <div className="mx-auto max-w-lg px-4 py-8">
-        {/* Congratulations banner */}
-        <div className="mb-6 overflow-hidden rounded-2xl border border-[rgba(201,139,88,0.3)] bg-[linear-gradient(135deg,rgba(201,139,88,0.16),rgba(255,248,239,0.06))] p-6">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-[var(--primary)]" />
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--primary)]">Delivery update</p>
-          </div>
-          <h2 className="mt-3 text-2xl font-semibold leading-tight text-white">
-            Congratulations. Let's start your baby's care track.
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-            This closes the pregnancy journey and creates the new baby profile. Any linked doctor connection carries over automatically.
+      <main className="motion-rise mx-auto max-w-xl px-4 py-8 sm:px-6">
+        <div className="surface relative overflow-hidden p-6">
+          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[var(--primary)] opacity-10 blur-2xl" />
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
+            <PartyPopper className="h-5 w-5" />
+          </span>
+          <h2 className="mt-4 text-xl font-semibold text-white">Congratulations!</h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-[var(--muted-foreground)]">
+            This closes your pregnancy track and starts your baby&apos;s care profile. Your linked doctor carries over automatically.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Baby name */}
-          <div className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-              <Baby className="h-3.5 w-3.5" /> Baby details
-            </div>
-            <div className="mt-4 space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="babyName" className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
-                  Baby&apos;s name
-                </Label>
-                <Input
-                  id="babyName"
-                  placeholder="Zara"
-                  value={babyName}
-                  onChange={event => setBabyName(event.target.value)}
-                />
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <section className="surface space-y-4 p-5">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
+              <Baby className="h-4 w-4 text-[var(--primary)]" /> Baby details
+            </h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="babyName">Baby&apos;s name</Label>
+                <Input id="babyName" placeholder="Zara" value={babyName} onChange={event => setBabyName(event.target.value)} />
               </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="birthDate" className="text-[13px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
-                  Birth date
-                </Label>
-                <Input
-                  id="birthDate"
-                  type="date"
-                  value={birthDate}
-                  onChange={event => setBirthDate(event.target.value)}
-                />
+              <div className="space-y-2">
+                <Label htmlFor="birthDate">Birth date</Label>
+                <Input id="birthDate" type="date" value={birthDate} onChange={event => setBirthDate(event.target.value)} />
               </div>
             </div>
-          </div>
-
-          {/* Gender */}
-          <div className="rounded-xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-              <HeartPulse className="h-3.5 w-3.5" /> Gender (optional)
+            <div className="space-y-2">
+              <Label>Sex <span className="font-normal text-slate-500">(optional)</span></Label>
+              <div role="radiogroup" aria-label="Sex" className="grid grid-cols-3 gap-2">
+                <OptionTile size="sm" active={gender === "girl"} onClick={() => setGender("girl")} label="Girl" />
+                <OptionTile size="sm" active={gender === "boy"} onClick={() => setGender("boy")} label="Boy" />
+                <OptionTile size="sm" active={gender === ""} onClick={() => setGender("")} label="Skip" />
+              </div>
             </div>
-            <div className="mt-3 flex gap-2">
-              <OptionButton active={gender === "girl"} onClick={() => setGender("girl")} label="Girl" />
-              <OptionButton active={gender === "boy"} onClick={() => setGender("boy")} label="Boy" />
-              <OptionButton active={gender === ""} onClick={() => setGender("")} label="Prefer not to say" />
-            </div>
-          </div>
+          </section>
 
-          {error ? (
-            <div className="rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-              {error}
-            </div>
-          ) : null}
+          {error ? <Notice tone="error">{error}</Notice> : null}
 
-          <div className="flex flex-col gap-2 pt-1 sm:flex-row">
-            <Button type="submit" disabled={loading} className="sm:flex-1">
-              {loading ? "Creating baby profile…" : "Start baby care journey"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="border-[var(--border)] bg-transparent text-white sm:flex-1"
-            >
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+            <Button type="button" variant="ghost" onClick={() => router.back()}>
               Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+              {loading ? "Creating profile…" : "Start baby care"}
             </Button>
           </div>
         </form>
-      </div>
+      </main>
     </div>
   )
 }

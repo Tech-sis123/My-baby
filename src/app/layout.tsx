@@ -1,5 +1,8 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
+import { Inter } from "next/font/google"
 import "./globals.css"
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" })
 
 export const metadata: Metadata = {
   title: "My Baby — Maternal & Child Health",
@@ -7,20 +10,15 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 }
 
+export const viewport: Viewport = {
+  themeColor: "#111827",
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className={`h-full ${inter.variable}`}>
       <body className="min-h-full overflow-x-hidden antialiased" suppressHydrationWarning>
-        <div aria-hidden="true" className="platform-bubbles">
-          <span className="platform-bubble bubble-a" />
-          <span className="platform-bubble bubble-b" />
-          <span className="platform-bubble bubble-c" />
-          <span className="platform-bubble bubble-d" />
-          <span className="platform-bubble bubble-e" />
-          <span className="platform-bubble bubble-f" />
-          <span className="platform-bubble bubble-g" />
-        </div>
-        <div className="platform-shell min-h-full flex flex-col">{children}</div>
+        <div className="platform-shell flex min-h-full flex-col">{children}</div>
       </body>
     </html>
   )

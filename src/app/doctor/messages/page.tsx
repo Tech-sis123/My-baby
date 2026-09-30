@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, User, MessageSquare } from "lucide-react"
+import { ChevronRight, User } from "lucide-react"
+import { AppHeader } from "@/components/app/app-header"
+import { EmptyState, SeverityDot } from "@/components/app/status"
+import { cn } from "@/lib/utils"
 import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { Message, Flag } from "@/lib/supabase/types"
 
@@ -99,89 +102,76 @@ export default async function DoctorMessagesPage() {
     }
   }).sort((a, b) => b.timestamp - a.timestamp) // Sort by most recent message
 
-  const getStatusColor = (status: "red" | "yellow" | "green") => {
-    if (status === "red") return "bg-red-500 border-red-500"
-    if (status === "yellow") return "bg-yellow-500 border-yellow-500"
-    return "bg-emerald-500 border-emerald-500"
-  }
+  const unreadCount = patientsList.filter(p => p.latestMessage && p.latestMessage.sender_id === p.id).length
 
   return (
-    <div className="min-h-screen bg-gray-50/30">
-      <header className="border-b border-[var(--border)] bg-[rgba(77,64,54,0.74)] px-4 py-4 backdrop-blur sticky top-0 z-10">
-        <div className="mx-auto flex w-full max-w-2xl items-center gap-3">
-          <Link href="/doctor/dashboard" className="text-white hover:text-gray-300 transition-colors">
-            <ChevronLeft className="h-6 w-6" />
-          </Link>
-          <div>
-            <p className="font-display text-2xl font-semibold text-white">Messages</p>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted-foreground)]">Patient Communications</p>
-          </div>
+    <div className="min-h-screen pb-24 md:pb-0">
+      <AppHeader role="doctor" />
+
+      <main className="motion-rise mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+        <div>
+          <h1 className="text-2xl font-semibold text-white">Messages</h1>
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+            {patientsList.length} linked {patientsList.length === 1 ? "patient" : "patients"}
+            {unreadCount > 0 ? ` · ${unreadCount} awaiting reply` : ""}
+          </p>
         </div>
-      </header>
-      
-      <main className="mx-auto w-full max-w-2xl px-4 py-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50">
-            <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
-              <MessageSquare className="h-5 w-5 text-[var(--primary)]" /> Select a Patient
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">Chat directly with mothers under your care.</p>
-          </div>
-          
+
+        <div className="surface mt-6 overflow-hidden">
           {patientsList.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              <User className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-              <p>No patients linked to your account yet.</p>
-            </div>
+            <EmptyState
+              className="m-5 border-0"
+              icon={<User className="h-5 w-5" />}
+              title="No linked patients yet"
+              description="Share your referral code so mothers can link to you and start messaging."
+            />
           ) : (
-            <ul className="divide-y divide-gray-100">
-              {patientsList.map((patient) => {
-                const isUnread = patient.latestMessage && patient.latestMessage.sender_id === patient.id // We don't have true read receipts, but we can assume sent by them is potentially unread.
-                
+            <ul className="divide-y divide-[var(--hairline)]">
+              {patientsList.map(patient => {
+                // No read receipts yet — a latest message from the patient is treated as awaiting reply.
+                const isUnread = !!patient.latestMessage && patient.latestMessage.sender_id === patient.id
+
                 return (
-                  <li key={patient.id} className="group">
-                    <Link 
-                      href={`/doctor/messages/${patient.id}`} 
-                      className="flex items-center gap-3 sm:gap-4 p-4 hover:bg-gray-50 transition-colors"
+                  <li key={patient.id}>
+                    <Link
+                      href={`/doctor/messages/${patient.id}`}
+                      className="group flex items-center gap-3.5 px-4 py-3.5 hover:bg-white/[0.025] sm:px-5"
                     >
-                      {/* Avatar */}
-                      <div className="relative flex-shrink-0">
-                        <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-[rgba(199,143,98,0.1)] text-[var(--primary)] font-semibold text-lg">
+                      <div className="relative shrink-0">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--muted)] text-sm font-semibold text-slate-200 ring-1 ring-[var(--hairline)]">
                           {patient.name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
-                        </div>
-                        {/* Status Indicator */}
-                        <div 
-                          className={`absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white ${getStatusColor(patient.status)}`} 
-                          title={`Status: ${patient.status}`}
+                        </span>
+                        <SeverityDot
+                          severity={patient.status}
+                          className="absolute -bottom-0.5 -right-0.5 h-3 w-3 ring-2 ring-[var(--card)]"
                         />
                       </div>
-                      
-                      {/* Message Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className={`truncate font-semibold ${isUnread ? "text-gray-900" : "text-gray-700"}`}>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <p className={cn("truncate text-sm", isUnread ? "font-semibold text-white" : "font-medium text-slate-200")}>
                             {patient.name}
                           </p>
-                          <span className={`text-xs flex-shrink-0 ml-2 ${isUnread ? "text-[var(--primary)] font-medium" : "text-gray-400"}`}>
+                          <span className={cn("num shrink-0 text-xs", isUnread ? "font-medium text-[var(--primary)]" : "text-slate-500")}>
                             {patient.latestMessage ? timeAgoShort(patient.latestMessage.created_at) : ""}
                           </span>
                         </div>
-                        
-                        <div className="flex items-center justify-between gap-4">
-                          <p className={`text-sm truncate ${isUnread ? "text-gray-800 font-medium" : "text-gray-500"}`}>
+                        <div className="mt-0.5 flex items-center justify-between gap-3">
+                          <p className={cn("truncate text-[13px]", isUnread ? "text-slate-200" : "text-[var(--muted-foreground)]")}>
                             {patient.latestMessage ? (
                               <>
-                                {patient.latestMessage.sender_id === user.id && "You: "}
+                                {patient.latestMessage.sender_id === user.id && <span className="text-slate-500">You: </span>}
                                 {patient.latestMessage.content}
                               </>
                             ) : (
-                              <span className="italic text-gray-400">No messages yet. Tap to start chatting.</span>
+                              <span className="italic text-slate-500">No messages yet</span>
                             )}
                           </p>
-                          {/* Chevron */}
-                          <ChevronLeft className="h-5 w-5 text-gray-300 rotate-180 flex-shrink-0 group-hover:text-gray-400 transition-colors" />
+                          {isUnread ? <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--primary)]" /> : null}
                         </div>
                       </div>
+
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-600 group-hover:text-slate-300" />
                     </Link>
                   </li>
                 )

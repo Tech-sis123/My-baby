@@ -1,13 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { Send, User, ChevronLeft } from "lucide-react"
+import { ArrowUp, MessageSquare } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Message } from "@/lib/supabase/types"
 import { getMessageHistory, sendMessage } from "@/lib/supabase/messages"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 interface ChatWindowProps {
   currentUserId: string
@@ -16,13 +14,22 @@ interface ChatWindowProps {
   partnerRole?: "doctor" | "mother"
 }
 
+function dayLabel(iso: string) {
+  const date = new Date(iso)
+  const today = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(today.getDate() - 1)
+  if (date.toDateString() === today.toDateString()) return "Today"
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday"
+  return date.toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "short" })
+}
+
 export function ChatWindow({
   currentUserId,
   partnerId,
   partnerName,
   partnerRole = "doctor"
 }: ChatWindowProps) {
-  const router = useRouter()
   const supabase = createClient()
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -81,7 +88,7 @@ export function ChatWindow({
       content: newMessage.trim(),
       created_at: new Date().toISOString(),
     }
-    
+
     // Optimistic UI update
     setMessages((prev) => [...prev, tempMessage])
     setNewMessage("")
@@ -91,7 +98,6 @@ export function ChatWindow({
       // Revert if failed (simplified error handling)
       setMessages((prev) => prev.filter((m) => m.id !== tempMessage.id))
       setNewMessage(tempMessage.content)
-      // Ideally show a toast error here
     } else {
       // Replace temp id with real id
       setMessages((prev) => prev.map((m) => (m.id === tempMessage.id ? sentMessage : m)))
@@ -106,54 +112,59 @@ export function ChatWindow({
     .substring(0, 2)
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] min-h-[500px] w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Chat Header */}
-      <div className="flex items-center p-4 border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
-        <button 
-          onClick={() => router.back()} 
-          className="mr-3 flex h-10 w-10 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-          aria-label="Go back"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-primary/10 text-primary shadow-sm font-medium text-sm">
+    <div className="surface flex h-full min-h-[420px] w-full flex-col overflow-hidden">
+      {/* Chat header */}
+      <div className="flex items-center gap-3 border-b border-[var(--hairline)] px-4 py-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary-soft)] text-xs font-semibold text-[var(--primary)]">
           {partnerInitials}
-        </div>
-        <div className="ml-3 flex flex-col">
-          <span className="font-semibold text-gray-900">{partnerName}</span>
-          <span className="text-xs text-gray-500 capitalize">{partnerRole}</span>
+        </span>
+        <div className="min-w-0 leading-tight">
+          <p className="truncate text-sm font-semibold text-white">{partnerName}</p>
+          <p className="text-xs capitalize text-[var(--muted-foreground)]">{partnerRole === "doctor" ? "Your doctor" : "Patient"}</p>
         </div>
       </div>
 
-      {/* Chat Messages */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50/50 scroll-smooth">
+      {/* Messages */}
+      <div className="flex-1 space-y-1.5 overflow-y-auto bg-[var(--surface-sunken)] px-4 py-5">
         {loading ? (
-          <div className="flex justify-center items-center h-full text-gray-400">
-            Loading messages...
+          <div className="flex h-full items-center justify-center text-sm text-[var(--muted-foreground)]">
+            Loading messages…
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-3 text-gray-400">
-            <div className="p-4 bg-gray-100 rounded-full">
-              <User className="h-8 w-8 text-gray-300" />
+          <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.04] text-slate-400">
+              <MessageSquare className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-medium text-slate-200">No messages yet</p>
+              <p className="mt-0.5 text-[13px] text-[var(--muted-foreground)]">Send a message to start the conversation.</p>
             </div>
-            <p className="text-sm">No messages yet. Say hello!</p>
           </div>
         ) : (
-          messages.map((msg) => {
+          messages.map((msg, index) => {
             const isMe = msg.sender_id === currentUserId
+            const prev = messages[index - 1]
+            const showDay = !prev || new Date(prev.created_at).toDateString() !== new Date(msg.created_at).toDateString()
+            const grouped = prev && prev.sender_id === msg.sender_id && !showDay
             return (
-              <div
-                key={msg.id}
-                className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm transition-all duration-200 hover:shadow-md ${
-                    isMe
-                      ? "bg-[var(--primary)] text-white rounded-tr-sm"
-                      : "bg-white text-gray-800 border border-gray-100 rounded-tl-sm"
-                  }`}
-                >
-                  {msg.content}
+              <div key={msg.id}>
+                {showDay ? (
+                  <p className="my-3 text-center text-[11px] font-medium text-slate-500">{dayLabel(msg.created_at)}</p>
+                ) : null}
+                <div className={cn("flex w-full", isMe ? "justify-end" : "justify-start", !grouped && "pt-1.5")}>
+                  <div
+                    className={cn(
+                      "max-w-[78%] rounded-2xl px-3.5 py-2 text-[14px] leading-relaxed",
+                      isMe
+                        ? "rounded-br-md bg-[var(--primary)] text-white"
+                        : "rounded-bl-md bg-[var(--card)] text-slate-100 ring-1 ring-[var(--hairline)]"
+                    )}
+                  >
+                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                    <p className={cn("mt-0.5 text-right text-[10px]", isMe ? "text-orange-100/80" : "text-slate-500")}>
+                      {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
                 </div>
               </div>
             )
@@ -162,28 +173,28 @@ export function ChatWindow({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input */}
-      <div className="p-4 bg-white border-t border-gray-100">
+      {/* Composer */}
+      <div className="border-t border-[var(--hairline)] p-3">
         <form
           onSubmit={handleSendMessage}
-          className="flex items-center space-x-2 bg-gray-50 rounded-full p-1 border border-gray-200 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all"
+          className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-sunken)] p-1.5 focus-within:border-[var(--primary)] focus-within:ring-2 focus-within:ring-[var(--primary-soft)]"
         >
-          <Input
+          <input
             type="text"
-            placeholder="Type your message..."
+            placeholder="Write a message…"
+            aria-label="Message"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-4 h-10 shadow-none text-sm text-gray-900"
+            className="h-10 flex-1 bg-transparent px-2.5 text-[15px] text-white placeholder:text-slate-500 focus:outline-none"
           />
-          <Button
+          <button
             type="submit"
-            size="icon"
             disabled={!newMessage.trim()}
-            className="h-10 w-10 rounded-full shrink-0 transition-transform active:scale-95"
+            aria-label="Send"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)] text-white hover:bg-[#EA6A0C] disabled:bg-white/[0.06] disabled:text-slate-500"
           >
-            <Send className="h-4 w-4" />
-            <span className="sr-only">Send</span>
-          </Button>
+            <ArrowUp className="h-4 w-4" />
+          </button>
         </form>
       </div>
     </div>

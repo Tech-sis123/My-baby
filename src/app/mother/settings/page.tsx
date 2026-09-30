@@ -1,7 +1,6 @@
-import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowLeft, User } from "lucide-react"
 import { MedicalFooter } from "@/components/medical-footer"
+import { AppHeader } from "@/components/app/app-header"
 import { bootstrapAccount } from "@/lib/account"
 import { createClient } from "@/lib/supabase/server"
 import { ProfileSettings } from "@/components/profile-settings"
@@ -23,33 +22,22 @@ export default async function MotherSettingsPage() {
   const displayName = profile?.full_name || "Mother"
 
   return (
-    <div className="min-h-screen pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-white/5 bg-black/40 px-4 py-3 backdrop-blur-2xl">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/mother/home"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]">Mother Settings</p>
-              <h1 className="text-base font-semibold text-white">{displayName}</h1>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen pb-24 md:pb-0">
+      <AppHeader role="mother" userName={displayName} userMeta={user.email || undefined} />
 
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        <ProfileSettings 
-          userId={user.id} 
-          initialFullName={profile?.full_name || ""} 
-          initialPhone={profile?.phone || ""} 
-          email={user.email || ""} 
-        />
-      </div>
+      <main className="motion-rise mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+        <h1 className="text-2xl font-semibold text-white">Settings</h1>
+        <p className="mt-1 text-sm text-[var(--muted-foreground)]">Manage your personal details and contact information.</p>
+
+        <div className="mt-6">
+          <ProfileSettings
+            userId={user.id}
+            initialFullName={profile?.full_name || ""}
+            initialPhone={profile?.phone || ""}
+            email={user.email || ""}
+          />
+        </div>
+      </main>
 
       <MedicalFooter />
     </div>

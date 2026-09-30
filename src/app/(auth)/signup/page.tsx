@@ -8,7 +8,9 @@ import { resolvePostAuthDestination, sanitizeNextPath } from "@/lib/account"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { LoaderCircle } from "lucide-react"
+import { Notice } from "@/components/app/status"
+import { RoleSwitch } from "../role-switch"
 
 function getAuthErrorMessage(error: AuthError): string {
   const message = error.message.toLowerCase()
@@ -46,7 +48,7 @@ function getAuthErrorMessage(error: AuthError): string {
 
 function SignupPageContent() {
   const searchParams = useSearchParams()
-  const role = (searchParams.get("role") || "mother") as "mother" | "doctor"
+  const role = searchParams.get("role") === "doctor" ? "doctor" : "mother"
   const nextPath = sanitizeNextPath(searchParams.get("next"))
 
   const [fullName, setFullName] = useState("")
@@ -55,6 +57,7 @@ function SignupPageContent() {
   const [specialty, setSpecialty] = useState("")
   const [clinicName, setClinicName] = useState("")
   const [error, setError] = useState("")
+  const [info, setInfo] = useState("")
   const [loading, setLoading] = useState(false)
 
   const normalizedEmail = email.trim().toLowerCase()
@@ -67,6 +70,7 @@ function SignupPageContent() {
     e.preventDefault()
     setLoading(true)
     setError("")
+    setInfo("")
 
     if (!normalizedEmail || !normalizedEmail.includes("@")) {
       setError("Enter a valid email address.")
@@ -101,7 +105,7 @@ function SignupPageContent() {
     }
 
     if (!data.session) {
-      setError("Account created successfully! Please check your email to confirm your account before signing in.")
+      setInfo("Account created. Check your email to confirm your account, then sign in.")
       setLoading(false)
       return
     }
@@ -112,103 +116,105 @@ function SignupPageContent() {
   }
 
   return (
-    <Card className="border-[rgba(255,255,255,0.08)] bg-[rgba(19,20,23,0.86)] shadow-none backdrop-blur">
-      <CardHeader className="pb-4 text-center">
-        <div className="mx-auto mb-2 inline-flex items-center justify-center rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
-          {role === "doctor" ? "Doctor Portal" : "Mother Portal"}
-        </div>
-        <CardTitle className="text-3xl">
-          {role === "doctor" ? "Create doctor account" : "Create your account"}
-        </CardTitle>
-        <CardDescription className="text-base">
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-white">
+          {role === "doctor" ? "Create clinician account" : "Create your account"}
+        </h1>
+        <p className="mt-1.5 text-sm text-[var(--muted-foreground)]">
           {role === "doctor"
-            ? "Set up your dashboard, referral code, and patient view."
-            : "Start your pregnancy or baby-care dashboard with your saved profile."}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full name</Label>
-            <Input
-              id="fullName"
-              placeholder={role === "doctor" ? "Dr. Adaeze Okonkwo" : "Aisha Bello"}
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              required
-            />
-          </div>
-          {role === "doctor" && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="specialty">Specialty</Label>
-                <Input
-                  id="specialty"
-                  placeholder="Obstetrician"
-                  value={specialty}
-                  onChange={e => setSpecialty(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clinicName">Clinic / Hospital name</Label>
-                <Input
-                  id="clinicName"
-                  placeholder="Lagos Women's Health"
-                  value={clinicName}
-                  onChange={e => setClinicName(e.target.value)}
-                />
-              </div>
-            </>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="text"
-              inputMode="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder="you@example.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="At least 8 characters"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              minLength={8}
-              required
-            />
-          </div>
-          {error && (
-            <p className="rounded-xl bg-red-500/10 p-3 text-sm text-red-200">{error}</p>
-          )}
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating account…" : "Create account"}
-          </Button>
-        </form>
-        <p className="text-center text-sm text-[var(--muted-foreground)] mt-4">
-          Already have an account?{" "}
-          <Link href={`/login?role=${role}${nextPath ? `&next=${encodeURIComponent(nextPath)}` : ""}`} className="text-[var(--primary)] font-semibold hover:underline">
-            Sign in
-          </Link>
+            ? "Set up your triage dashboard and referral code."
+            : "Start tracking your pregnancy or baby's care."}
         </p>
-      </CardContent>
-    </Card>
+      </div>
+
+      <RoleSwitch role={role} basePath="/signup" nextPath={nextPath} />
+
+      <form onSubmit={handleSignup} className="mt-6 space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="fullName">Full name</Label>
+          <Input
+            id="fullName"
+            autoComplete="name"
+            placeholder={role === "doctor" ? "Dr. Adaeze Okonkwo" : "Aisha Bello"}
+            value={fullName}
+            onChange={e => setFullName(e.target.value)}
+            required
+          />
+        </div>
+        {role === "doctor" && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="specialty">Specialty</Label>
+              <Input
+                id="specialty"
+                placeholder="Obstetrician"
+                value={specialty}
+                onChange={e => setSpecialty(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="clinicName">Clinic / hospital</Label>
+              <Input
+                id="clinicName"
+                placeholder="Lagos Women's Health"
+                value={clinicName}
+                onChange={e => setClinicName(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="text"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="you@example.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="At least 8 characters"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            minLength={8}
+            required
+          />
+        </div>
+        {info && <Notice tone="success">{info}</Notice>}
+        {error && <Notice tone="error">{error}</Notice>}
+
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+          {loading ? "Creating account…" : "Create account"}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
+        Already have an account?{" "}
+        <Link href={`/login?role=${role}${nextPath ? `&next=${encodeURIComponent(nextPath)}` : ""}`} className="font-semibold text-[var(--primary)] hover:text-orange-300">
+          Sign in
+        </Link>
+      </p>
+    </div>
   )
 }
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<Card className="border-white/40 bg-white/90 p-8 text-center shadow-[0_30px_90px_rgba(17,24,39,0.12)] backdrop-blur">Loading…</Card>}>
+    <Suspense fallback={<p className="text-center text-sm text-[var(--muted-foreground)]">Loading…</p>}>
       <SignupPageContent />
     </Suspense>
   )

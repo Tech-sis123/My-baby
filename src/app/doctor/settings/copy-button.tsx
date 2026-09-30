@@ -13,8 +13,9 @@ export function CopyCodeButton({ code }: { code: string }) {
   }
 
   return (
-    <Button onClick={copy} className="w-full gap-2">
-      {copied ? <><Check className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy invite code</>}
+    <Button onClick={copy} variant="secondary">
+      {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+      {copied ? "Copied" : "Copy code"}
     </Button>
   )
 }

@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { CheckCircle2, Link2, LoaderCircle, RefreshCw, Sparkles } from "lucide-react"
+import { Link2, LoaderCircle, RefreshCw } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { Notice } from "@/components/app/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { buildDefaultInviteCode, normalizeInviteCode } from "@/lib/account"
@@ -75,130 +77,89 @@ export function ReferralCodeManager({ userId, displayName, currentCode, specialt
     router.refresh()
   }
 
+  const chip =
+    "rounded-md border border-[var(--border)] px-2.5 py-1 font-mono text-xs text-slate-400 hover:border-slate-500 hover:text-white"
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
-      <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-          <Link2 className="h-4 w-4" /> Current referral code
-        </div>
+    <section className="surface overflow-hidden">
+      <div className="border-b border-[var(--hairline)] px-5 py-4 sm:px-6">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-white">
+          <Link2 className="h-4 w-4 text-[var(--primary)]" /> Referral code
+        </h2>
+        <p className="mt-0.5 text-[13px] text-[var(--muted-foreground)]">
+          Mothers enter this code to link their pregnancy or baby profile to your dashboard.
+        </p>
+      </div>
 
-        <div className="mt-5 rounded-[1.65rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(42,34,28,0.42)] p-5">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Active code</p>
-          <p className="mt-4 break-all text-4xl font-semibold tracking-[0.24em] text-white">{currentCode}</p>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted-foreground)]">
-            This is the exact value a mother enters to link herself, her pregnancy, or her baby-care track back to your dashboard.
-          </p>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Best use</p>
-              <p className="mt-2 text-sm leading-6 text-white">
-                Share it verbally, print it on intake slips, or send it in a simple message.
-              </p>
-            </div>
-
-            <div className="rounded-[1.2rem] border border-[var(--border)] bg-[rgba(255,248,239,0.04)] p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">What happens next</p>
-              <p className="mt-2 text-sm leading-6 text-white">
-                New check-ins from linked pregnancy and baby tracks start surfacing in your doctor workflow.
-              </p>
-            </div>
+      <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-2">
+        {/* Current code */}
+        <div className="surface-sunken flex flex-col justify-between p-5">
+          <div>
+            <p className="data-label">Active code</p>
+            <p className="mt-2 break-all font-mono text-3xl font-semibold tracking-wider text-white">{currentCode}</p>
+            <p className="mt-3 text-[13px] leading-relaxed text-[var(--muted-foreground)]">
+              Share it verbally, print it on intake slips, or send it by message. New check-ins from linked profiles appear on your triage board.
+            </p>
           </div>
-
           <div className="mt-5">
             <CopyCodeButton code={currentCode} />
           </div>
         </div>
-      </section>
 
-      <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6">
-        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-          <Sparkles className="h-4 w-4" /> Customize the code
-        </div>
-        <h3 className="mt-3 text-3xl font-semibold text-white">Pick something mothers will remember</h3>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
-          Use your surname, short clinic name, or a concise professional handle. The system normalizes it into a clean all-caps referral code.
-        </p>
-
-        <div className="mt-6 rounded-[1.5rem] border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-5">
-          <label htmlFor="desiredCode" className="block text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-            Referral code input
-          </label>
+        {/* Customize */}
+        <div>
+          <Label htmlFor="desiredCode">Customize code</Label>
           <Input
             id="desiredCode"
             value={desiredCode}
             onChange={event => setDesiredCode(event.target.value.toUpperCase())}
             placeholder={suggestedCode}
-            className="mt-3 uppercase tracking-[0.24em]"
+            className="mt-2 font-mono uppercase tracking-wider"
           />
+          <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+            Preview: <span className="font-mono font-semibold text-slate-200">{normalizedPreview}</span>
+          </p>
 
-          <div className="mt-4 rounded-[1.2rem] border border-[var(--border)] bg-[rgba(42,34,28,0.35)] p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Live preview</p>
-            <p className="mt-2 break-all text-2xl font-semibold tracking-[0.18em] text-white">{normalizedPreview}</p>
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setDesiredCode(suggestedCode)}
-              className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
-            >
-              Suggested: {suggestedCode}
-            </button>
-            {clinicName ? (
-              <button
-                type="button"
-                onClick={() => setDesiredCode(clinicName)}
-                className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
-              >
-                Clinic: {normalizeInviteCode(clinicName)}
+          <div className="mt-4">
+            <p className="data-label mb-2">Suggestions</p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setDesiredCode(suggestedCode)} className={chip}>
+                {suggestedCode}
               </button>
-            ) : null}
-            {specialty ? (
-              <button
-                type="button"
-                onClick={() => setDesiredCode(`${displayName}-${specialty}`)}
-                className="rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.06)] px-3 py-1 text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
-              >
-                Name + specialty
-              </button>
-            ) : null}
-          </div>
-        </div>
-
-        {error ? (
-          <div className="mt-4 rounded-[1.25rem] border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-            {error}
-          </div>
-        ) : null}
-
-        {success ? (
-          <div className="mt-4 rounded-[1.25rem] border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>{success}</span>
+              {clinicName ? (
+                <button type="button" onClick={() => setDesiredCode(clinicName)} className={chip}>
+                  {normalizeInviteCode(clinicName)}
+                </button>
+              ) : null}
+              {specialty ? (
+                <button type="button" onClick={() => setDesiredCode(`${displayName}-${specialty}`)} className={chip}>
+                  {normalizeInviteCode(`${displayName}-${specialty}`)}
+                </button>
+              ) : null}
             </div>
           </div>
-        ) : null}
 
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-          <Button onClick={() => saveCode(desiredCode)} disabled={loading} className="sm:flex-1">
-            {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {loading ? "Saving referral code" : "Save referral code"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setDesiredCode(suggestedCode)
-              setError("")
-              setSuccess("")
-            }}
-            className="border-[var(--border)] bg-transparent text-white sm:flex-1"
-          >
-            <RefreshCw className="h-4 w-4" /> Use suggested code
-          </Button>
+          {error ? <Notice tone="error" className="mt-4">{error}</Notice> : null}
+          {success ? <Notice tone="success" className="mt-4">{success}</Notice> : null}
+
+          <div className="mt-5 flex gap-2">
+            <Button onClick={() => saveCode(desiredCode)} disabled={loading || normalizeInviteCode(desiredCode) === currentCode}>
+              {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+              {loading ? "Saving…" : "Save code"}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDesiredCode(currentCode)
+                setError("")
+                setSuccess("")
+              }}
+            >
+              <RefreshCw className="h-4 w-4" /> Reset
+            </Button>
+          </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   )
 }

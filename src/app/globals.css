@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #111827; /* Lighter base (gray-900) */
+  /* Core palette (unchanged brand codes) */
+  --background: #111827;
   --foreground: #F8FAFC;
-  --card: #1F2937; /* Lighter card (gray-800) */
+  --card: #1F2937;
   --card-foreground: #F8FAFC;
-  --primary: #F97316; /* Clean orange primary */
+  --primary: #F97316;
   --primary-foreground: #ffffff;
   --secondary: #334155;
   --secondary-foreground: #F8FAFC;
@@ -20,21 +21,33 @@
   --ring: #F97316;
   --radius: 0.75rem;
 
-  /* Strict Semantic Colors */
+  /* Semantic clinical colors */
   --flag-red: #EF4444;
   --flag-amber: #F59E0B;
   --flag-green: #10B981;
+
+  /* Derived surfaces */
+  --surface: var(--card);
+  --surface-sunken: #172033;
+  --hairline: rgba(148, 163, 184, 0.14);
+  --primary-soft: rgba(249, 115, 22, 0.12);
+  --primary-line: rgba(249, 115, 22, 0.35);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Inter", "Avenir Next", "Segoe UI", sans-serif;
-  --font-mono: "SFMono-Regular", "Menlo", monospace;
-  
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-card: var(--card);
+  --color-flag-red: var(--flag-red);
+  --color-flag-amber: var(--flag-amber);
+  --color-flag-green: var(--flag-green);
+  --font-sans: var(--font-inter), "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
 }
 
 * {
@@ -43,74 +56,129 @@
 
 html {
   color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: 
-    radial-gradient(circle at top, #1F2937 0%, #111827 60%),
-    #111827;
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.55;
   min-height: 100vh;
+  font-feature-settings: "cv11", "ss01";
 }
 
-.platform-shell {
-  position: relative;
-  z-index: 1;
-  animation: shell-enter 300ms ease-out;
+h1, h2, h3, h4 {
+  letter-spacing: -0.015em;
+  font-weight: 600;
 }
 
-.motion-rise {
-  animation: rise-in 400ms ease-out both;
+a, button {
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
 }
 
-.motion-rise-delay {
-  animation: rise-in 500ms ease-out both;
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
-h1, h2, h3, .font-display {
-  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
-  letter-spacing: -0.03em;
-}
-
-a {
-  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
-}
-
-button {
-  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
-}
-
-button:hover,
-a:hover {
-  transform: translateY(-1px);
-}
-
-/* Ensure all interactive elements meet minimum tap target */
-button, a, [role="button"] {
-  min-height: 44px;
+::selection {
+  background: rgba(249, 115, 22, 0.28);
 }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 textarea:-webkit-autofill,
-textarea:-webkit-autofill:hover,
-textarea:-webkit-autofill:focus,
-select:-webkit-autofill,
-select:-webkit-autofill:hover,
-select:-webkit-autofill:focus {
+select:-webkit-autofill {
   -webkit-text-fill-color: var(--foreground);
-  -webkit-box-shadow: 0 0 0 1000px #1A1D23 inset;
-  box-shadow: 0 0 0 1000px #1A1D23 inset;
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-sunken) inset;
+  box-shadow: 0 0 0 1000px var(--surface-sunken) inset;
   transition: background-color 9999s ease-out 0s;
   caret-color: var(--foreground);
 }
 
-::selection {
-  background: rgba(249, 115, 22, 0.2);
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
+
+/* ── Component layer ─────────────────────────────── */
+
+@layer components {
+  .surface {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 0.875rem;
+  }
+
+  .surface-sunken {
+    background: var(--surface-sunken);
+    border: 1px solid var(--hairline);
+    border-radius: 0.625rem;
+  }
+
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .data-label {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .page {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 80rem;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .page { padding-inline: 1.5rem; }
+  }
+}
+
+/* ── Motion ─────────────────────────────── */
+
+.platform-shell {
+  animation: shell-enter 240ms ease-out;
+}
+
+.motion-rise {
+  animation: rise-in 320ms ease-out both;
+}
+
+.float-up {
+  animation: float-up 1600ms ease-out forwards;
+}
+
+.pulse-dot {
+  position: relative;
+}
+
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: pulse-ring 2s ease-out infinite;
 }
 
 @keyframes shell-enter {
@@ -119,23 +187,30 @@ select:-webkit-autofill:focus {
 }
 
 @keyframes rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float-up {
+  0% { opacity: 0; transform: translate(-50%, 4px) scale(0.9); }
+  20% { opacity: 1; transform: translate(-50%, -6px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -36px) scale(1); }
+}
+
+@keyframes pulse-ring {
+  0% { opacity: 0.6; transform: scale(0.8); }
+  100% { opacity: 0; transform: scale(1.8); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .platform-shell,
   .motion-rise,
-  .motion-rise-delay,
-  a,
-  button {
+  .float-up,
+  .pulse-dot::after {
     animation: none !important;
-    transition: none !important;
   }
+}
+
+@media print {
+  body { background: #fff; color: #0f172a; }
 }

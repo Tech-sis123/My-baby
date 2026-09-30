@@ -1,20 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Link from "next/link"
-import { signOutAndRedirect } from "@/lib/auth-client"
-import {
-  ChevronLeft,
-  ClipboardList,
-  HeartPulse,
-  Lightbulb,
-  LogOut,
-  Send,
-  Stethoscope,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { createClient } from "@/lib/supabase/client"
+import { ArrowUp, Bot, ClipboardList, Sparkles } from "lucide-react"
+import { AppHeader } from "@/components/app/app-header"
+import { cn } from "@/lib/utils"
 
 interface Message {
   role: "user" | "assistant"
@@ -34,7 +23,6 @@ interface AskAIClientProps {
 
 export function AskAIClient({
   role,
-  homeHref,
   title,
   subtitle,
   intro,
@@ -42,8 +30,8 @@ export function AskAIClient({
   contextSummary,
   promptSuggestions,
 }: AskAIClientProps) {
-  const supabase = createClient()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const [messages, setMessages] = useState<Message[]>([{ role: "assistant", content: intro }])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -52,6 +40,13 @@ export function AskAIClient({
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+    el.style.height = "auto"
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+  }, [input])
 
   const defaultPrompts =
     role === "doctor"
@@ -69,12 +64,9 @@ export function AskAIClient({
         ]
 
   const prompts = promptSuggestions && promptSuggestions.length > 0 ? promptSuggestions : defaultPrompts
-
-  const panelIcon = role === "doctor" ? <Stethoscope className="h-3.5 w-3.5" /> : <HeartPulse className="h-3.5 w-3.5" />
-
-  async function handleSignOut() {
-    await signOutAndRedirect(supabase, role === "doctor" ? "/login?role=doctor" : "/login?role=mother")
-  }
+  const isFresh = messages.length === 1
+  const lastMessage = messages[messages.length - 1]
+  const showTyping = streaming && lastMessage?.role === "user"
 
   async function handleSendMessage() {
     if (!input.trim() || loading) return
@@ -137,134 +129,132 @@ export function AskAIClient({
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      {/* Header */}
-      <header className="shrink-0 border-b border-[var(--border)] bg-[rgba(43,37,31,0.88)] px-4 py-3 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link href={homeHref}>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </Link>
+    <div className="flex h-[100dvh] flex-col pb-[64px] md:pb-0">
+      <AppHeader role={role} />
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6">
+          {/* Title */}
+          <div className="mb-6 flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
+              <Sparkles className="h-5 w-5" />
+            </span>
             <div>
-              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">
-                {panelIcon} {role === "doctor" ? "Clinical copilot" : "Care assistant"}
-              </div>
-              <h1 className="text-base font-semibold text-white">{title}</h1>
+              <h1 className="text-lg font-semibold text-white">{title}</h1>
+              <p className="text-[13px] text-[var(--muted-foreground)]">{subtitle}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="hidden text-xs text-[var(--muted-foreground)] sm:block">{subtitle}</span>
-            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleSignOut} title="Sign out">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
 
-      {/* Body: chat + sidebar */}
-      <div className="mx-auto flex w-full max-w-7xl flex-1 gap-0 overflow-hidden px-4 py-4 2xl:gap-4">
-
-        {/* Chat */}
-        <section className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)]">
-          {/* Message count */}
-          <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-            <p className="text-[10px] uppercase tracking-[0.26em] text-[var(--primary)]">Conversation</p>
-            <span className="text-xs text-[var(--muted-foreground)]">{messages.length} messages</span>
-          </div>
+          {contextSummary ? (
+            <div className="surface mb-6 p-4">
+              <p className="eyebrow flex items-center gap-1.5">
+                <ClipboardList className="h-3.5 w-3.5" /> Case context
+              </p>
+              <p className="mt-2 text-[13px] leading-relaxed text-slate-300">{contextSummary}</p>
+            </div>
+          ) : null}
 
           {/* Messages */}
-          <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-            {messages.map((message, index) => (
-              <div key={`${message.role}-${index}`} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-7 ${
-                    message.role === "user"
-                      ? "border border-[rgba(201,139,88,0.24)] bg-[rgba(201,139,88,0.12)] text-white"
-                      : "border border-[var(--border)] bg-[rgba(42,34,28,0.5)] text-[var(--foreground)]"
-                  }`}
-                >
-                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
-                    {message.role === "user" ? "You" : "Assistant"}
-                  </p>
-                  <p className="whitespace-pre-wrap">{message.content}</p>
-                </div>
-              </div>
-            ))}
-
-            {streaming ? (
-              <div className="flex justify-start">
-                <div className="rounded-2xl border border-[var(--border)] bg-[rgba(42,34,28,0.5)] px-4 py-3">
-                  <div className="flex gap-1">
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--primary)]" />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--primary)]" style={{ animationDelay: "0.1s" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--primary)]" style={{ animationDelay: "0.2s" }} />
+          <div className="space-y-6">
+            {messages.map((message, index) =>
+              message.role === "user" ? (
+                <div key={`u-${index}`} className="flex justify-end">
+                  <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--muted)] px-4 py-2.5 text-[15px] leading-relaxed text-slate-100 ring-1 ring-[var(--hairline)]">
+                    <p className="whitespace-pre-wrap">{message.content}</p>
                   </div>
                 </div>
+              ) : (
+                <div key={`a-${index}`} className="flex gap-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--primary-soft)] text-[var(--primary)]">
+                    <Bot className="h-4 w-4" />
+                  </span>
+                  <p
+                    className={cn(
+                      "min-w-0 flex-1 whitespace-pre-wrap pt-0.5 text-[15px] leading-relaxed",
+                      message.content.startsWith("Error:") ? "text-red-300" : "text-slate-200"
+                    )}
+                  >
+                    {message.content}
+                  </p>
+                </div>
+              )
+            )}
+
+            {showTyping ? (
+              <div className="flex gap-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--primary-soft)] text-[var(--primary)]">
+                  <Bot className="h-4 w-4" />
+                </span>
+                <div className="flex items-center gap-1 pt-2">
+                  {[0, 0.15, 0.3].map(delay => (
+                    <span key={delay} className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" style={{ animationDelay: `${delay}s` }} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {isFresh ? (
+              <div className="grid gap-2.5 pt-2 sm:grid-cols-2">
+                {prompts.map(prompt => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => {
+                      setInput(prompt)
+                      inputRef.current?.focus()
+                    }}
+                    className="surface p-3.5 text-left text-[13px] leading-snug text-slate-300 hover:border-slate-500 hover:text-white"
+                  >
+                    {prompt}
+                  </button>
+                ))}
               </div>
             ) : null}
 
             <div ref={scrollRef} />
           </div>
+        </div>
+      </div>
 
-          {/* Input */}
-          <div className="shrink-0 border-t border-[var(--border)] px-4 py-3">
-            <div className="flex gap-2">
-              <Input
-                placeholder={placeholder}
-                value={input}
-                onChange={event => setInput(event.target.value)}
-                onKeyDown={event => {
-                  if (event.key === "Enter" && !loading) handleSendMessage()
-                }}
-                disabled={loading}
-                className="flex-1"
-              />
-              <Button
-                size="icon"
-                onClick={handleSendMessage}
-                disabled={loading || !input.trim()}
-                className="shrink-0"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Sidebar */}
-        <aside className="hidden w-72 shrink-0 space-y-3 overflow-y-auto 2xl:block">
-
-          {/* Context summary */}
-          {contextSummary ? (
-            <div className="rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
-              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                <ClipboardList className="h-3.5 w-3.5" /> Case context
-              </div>
-              <p className="mt-2 text-xs leading-5 text-white">{contextSummary}</p>
-            </div>
-          ) : null}
-
-          {/* Prompt starters */}
-          <div className="rounded-2xl border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-4">
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-              <Lightbulb className="h-3.5 w-3.5" /> {role === "doctor" ? "Doctor prompts" : "Prompt starters"}
-            </div>
-            <div className="mt-3 space-y-2">
-              {prompts.map(prompt => (
-                <button
-                  key={prompt}
-                  type="button"
-                  onClick={() => setInput(prompt)}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[rgba(255,248,239,0.05)] p-3 text-left text-xs leading-5 text-white transition hover:border-[rgba(201,139,88,0.34)] hover:bg-[rgba(255,248,239,0.08)]"
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
+      {/* Composer */}
+      <div className="shrink-0 border-t border-[var(--hairline)] bg-[var(--background)]">
+        <div className="mx-auto w-full max-w-3xl px-4 py-3 sm:px-6">
+          <form
+            onSubmit={event => {
+              event.preventDefault()
+              handleSendMessage()
+            }}
+            className="flex items-end gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-sunken)] p-1.5 focus-within:border-[var(--primary)] focus-within:ring-2 focus-within:ring-[var(--primary-soft)]"
+          >
+            <textarea
+              ref={inputRef}
+              rows={1}
+              placeholder={placeholder}
+              value={input}
+              onChange={event => setInput(event.target.value)}
+              onKeyDown={event => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault()
+                  if (!loading) handleSendMessage()
+                }
+              }}
+              disabled={loading}
+              aria-label="Message"
+              className="max-h-40 min-h-[40px] flex-1 resize-none bg-transparent px-2.5 py-2 text-[15px] text-white placeholder:text-slate-500 focus:outline-none disabled:opacity-60"
+            />
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              aria-label="Send"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)] text-white hover:bg-[#EA6A0C] disabled:bg-white/[0.06] disabled:text-slate-500"
+            >
+              <ArrowUp className="h-4 w-4" />
+            </button>
+          </form>
+          <p className="mt-2 text-center text-[11px] text-slate-500">
+            AI guidance can be wrong and is not a diagnosis. For urgent symptoms, contact your doctor or nearest hospital.
+          </p>
+        </div>
       </div>
     </div>
   )

@@ -1,14 +1,8 @@
-import Link from "next/link"
 import { redirect } from "next/navigation"
-import {
-  ArrowLeft,
-  Baby,
-  Link2,
-  ShieldCheck,
-  Stethoscope,
-  Users,
-} from "lucide-react"
+import { Baby, HeartPulse, Users } from "lucide-react"
 import { MedicalFooter } from "@/components/medical-footer"
+import { AppHeader } from "@/components/app/app-header"
+import { StatTile } from "@/components/app/status"
 import { bootstrapAccount } from "@/lib/account"
 import { createClient } from "@/lib/supabase/server"
 import { ReferralCodeManager } from "./referral-code-manager"
@@ -39,63 +33,35 @@ export default async function DoctorSettingsPage() {
   const displayName = profile?.full_name || "Doctor"
 
   return (
-    <div className="min-h-screen pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(43,37,31,0.88)] px-4 py-3 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/doctor/dashboard"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(255,248,239,0.08)] text-[var(--foreground)] transition hover:border-[rgba(201,139,88,0.34)] hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]">Doctor settings</p>
-              <h1 className="text-base font-semibold text-white">{displayName}</h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 rounded-full border border-[rgba(199,143,98,0.24)] bg-[rgba(199,143,98,0.1)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--foreground)]">
-            <ShieldCheck className="h-3.5 w-3.5" /> Linkage active
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen pb-24 md:pb-0">
+      <AppHeader role="doctor" userName={`Dr. ${displayName}`} userMeta={doctor.specialty || doctor.clinic_name || undefined} />
 
-      {/* Stat strip */}
-      <div className="border-b border-[var(--border)] bg-[rgba(73,60,51,0.5)]">
-        <div className="mx-auto flex w-full max-w-3xl divide-x divide-[var(--border)]">
-          {[
-            { label: "Linked mothers", value: linkedMotherCount, icon: <Users className="h-3.5 w-3.5" /> },
-            { label: "Pregnancies", value: pregnancyCount, icon: <Stethoscope className="h-3.5 w-3.5" /> },
-            { label: "Baby tracks", value: babyCount, icon: <Baby className="h-3.5 w-3.5" /> },
-            { label: "Current code", value: doctor.invite_code, icon: <Link2 className="h-3.5 w-3.5 text-emerald-100" /> },
-          ].map(stat => (
-            <div key={stat.label} className="flex-1 px-4 py-3">
-              <div className="flex items-center gap-1 text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-                {stat.icon} {stat.label}
-              </div>
-              <p className="mt-0.5 text-lg font-semibold text-white">{stat.value}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <main className="motion-rise mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+        <h1 className="text-2xl font-semibold text-white">Settings</h1>
+        <p className="mt-1 text-sm text-[var(--muted-foreground)]">Your profile, referral code and linked patients.</p>
 
-      {/* Settings Sections */}
-      <div className="mx-auto max-w-3xl px-4 py-6 space-y-8">
-        <ProfileSettings 
-          userId={user.id} 
-          initialFullName={profile?.full_name || ""} 
-          initialPhone={profile?.phone || ""} 
-          email={user.email || ""} 
-        />
-        <ReferralCodeManager
-          userId={user.id}
-          displayName={displayName}
-          currentCode={doctor.invite_code}
-          specialty={doctor.specialty}
-          clinicName={doctor.clinic_name}
-        />
-      </div>
+        <div className="mt-6 grid grid-cols-3 gap-3">
+          <StatTile label="Linked mothers" value={linkedMotherCount} icon={<Users className="h-4 w-4" />} />
+          <StatTile label="Pregnancies" value={pregnancyCount} icon={<HeartPulse className="h-4 w-4" />} />
+          <StatTile label="Baby tracks" value={babyCount} icon={<Baby className="h-4 w-4" />} />
+        </div>
+
+        <div className="mt-8 space-y-6">
+          <ReferralCodeManager
+            userId={user.id}
+            displayName={displayName}
+            currentCode={doctor.invite_code}
+            specialty={doctor.specialty}
+            clinicName={doctor.clinic_name}
+          />
+          <ProfileSettings
+            userId={user.id}
+            initialFullName={profile?.full_name || ""}
+            initialPhone={profile?.phone || ""}
+            email={user.email || ""}
+          />
+        </div>
+      </main>
 
       <MedicalFooter />
     </div>

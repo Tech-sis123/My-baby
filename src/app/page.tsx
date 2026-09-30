@@ -1,69 +1,75 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { MedicalFooter } from "@/components/medical-footer"
 import {
+  Activity,
   ArrowRight,
   Baby,
   BellRing,
-  Clock3,
+  Bot,
+  Check,
+  ClipboardList,
+  HeartPulse,
   Link2,
-  Sparkles,
+  ShieldCheck,
   Stethoscope,
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { MedicalFooter } from "@/components/medical-footer"
+import { Brand } from "@/components/app/brand"
+import { SeverityBadge, SeverityDot } from "@/components/app/status"
 
 const MOTHER_IMAGE =
   "https://images.pexels.com/photos/35136012/pexels-photo-35136012.jpeg?auto=compress&cs=tinysrgb&w=1200"
 
-const featureColumns = [
+const audiences = [
   {
-    eyebrow: "For patients",
-    title: "Pregnancy and baby care stay in the right lane.",
-    body: "If a mother is pregnant, the app stays on pregnancy. If she has a baby, it stays on baby care.",
+    eyebrow: "For mothers",
+    title: "A calm daily check-in for you and your baby",
     icon: Baby,
+    points: [
+      "Pregnancy and baby care tracked on separate, focused paths",
+      "Weekly guidance matched to your stage",
+      "Warning signs flagged instantly — and shared with your doctor",
+    ],
+    cta: { href: "/signup?role=mother", label: "Create mother account" },
   },
   {
-    eyebrow: "For doctors",
-    title: "Doctors get a proper triage view.",
-    body: "Linked patients appear on a live board, urgency is flagged, and invite codes connect several mother accounts back to one doctor.",
+    eyebrow: "For clinicians",
+    title: "A triage board that surfaces who needs you first",
     icon: Stethoscope,
+    points: [
+      "Linked patients sorted urgent → review → stable",
+      "Live updates the moment a check-in is submitted",
+      "One referral code links every patient to your workspace",
+    ],
+    cta: { href: "/signup?role=doctor", label: "Create doctor account" },
   },
 ]
 
-const processSteps = [
+const steps = [
   {
-    number: "01",
-    title: "Choose the right care path",
-    body: "Start as pregnant, have a baby, or both. That choice shapes what the product shows next.",
+    icon: ClipboardList,
+    title: "Choose a care path",
+    body: "Start as pregnant, with a baby, or both. The app only shows what matters for that stage.",
   },
   {
-    number: "02",
-    title: "Check in and stay linked",
-    body: "Mothers add updates and can attach a doctor's referral code so check-ins appear on the doctor's side.",
-  },
-  {
-    number: "03",
-    title: "Prioritize what matters",
-    body: "Doctors see red first, yellow next, and stable cases after that.",
-  },
-]
-
-const reassuranceItems = [
-  {
-    title: "Referral-code onboarding",
-    body: "A doctor can generate a unique code and mothers can attach themselves to it from their own accounts.",
     icon: Link2,
+    title: "Link your doctor",
+    body: "Enter your doctor's referral code so every check-in reaches their dashboard automatically.",
   },
   {
-    title: "Fast follow-up loops",
-    body: "Check-ins, alerts, appointments, and pre-visit briefs are all placed where they can be acted on quickly.",
-    icon: Clock3,
-  },
-  {
-    title: "Signal over noise",
-    body: "A quieter visual system makes the experience feel credible and lets high-priority information stand out.",
     icon: BellRing,
+    title: "Act on what matters",
+    body: "Red flags surface first. Doctors follow up, schedule callbacks, and message directly.",
   },
+]
+
+const capabilities = [
+  { icon: HeartPulse, label: "Antenatal tracking" },
+  { icon: Baby, label: "Newborn check-ins" },
+  { icon: Activity, label: "Real-time triage" },
+  { icon: Bot, label: "AI care assistant" },
+  { icon: ShieldCheck, label: "Private by design" },
 ]
 
 export const metadata = {
@@ -71,206 +77,246 @@ export const metadata = {
   description: "Daily health tracking for pregnancy and early childhood, with real-time alerts for your doctor.",
 }
 
+function ProductPreview() {
+  return (
+    <div className="relative">
+      <div className="relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-[var(--card)]">
+        <Image
+          src={MOTHER_IMAGE}
+          alt="Mother holding her newborn"
+          width={1200}
+          height={1400}
+          priority
+          className="h-[340px] w-full object-cover object-[center_20%] sm:h-[460px]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#111827]/20 to-transparent" />
+      </div>
+
+      {/* Floating check-in card */}
+      <div className="surface absolute -bottom-6 left-4 right-4 p-4 shadow-2xl shadow-black/40 sm:left-6 sm:right-auto sm:w-[300px]">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="data-label">Daily check-in</p>
+            <p className="mt-0.5 text-sm font-semibold text-white">Pregnancy · Week 32</p>
+          </div>
+          <SeverityBadge severity="green" label="All clear" />
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {[
+            { k: "BP", v: "118/76" },
+            { k: "Movement", v: "Normal" },
+            { k: "Feeling", v: "Good" },
+          ].map(item => (
+            <div key={item.k} className="surface-sunken px-2.5 py-2">
+              <p className="text-[10px] uppercase tracking-wide text-slate-500">{item.k}</p>
+              <p className="num mt-0.5 text-[13px] font-semibold text-slate-100">{item.v}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Floating triage card */}
+      <div className="surface absolute -top-5 right-4 hidden w-[230px] p-3.5 shadow-2xl shadow-black/40 sm:block lg:-right-6">
+        <p className="data-label mb-2.5">Clinician queue</p>
+        <div className="space-y-2">
+          {[
+            { n: "A. Bello", s: "red" as const, t: "Severe headache" },
+            { n: "C. Eze", s: "yellow" as const, t: "Low wet diapers" },
+            { n: "T. Adebayo", s: "green" as const, t: "Feeding well" },
+          ].map(row => (
+            <div key={row.n} className="flex items-center gap-2.5">
+              <SeverityDot severity={row.s} />
+              <span className="text-[13px] font-medium text-slate-100">{row.n}</span>
+              <span className="ml-auto truncate text-[11px] text-slate-500">{row.t}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#2b251f]">
+    <div className="min-h-screen">
       {/* Nav */}
-      <nav className="sticky top-0 z-10 border-b border-[rgba(255,248,239,0.08)] bg-[rgba(30,25,20,0.92)] backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="flex items-center gap-3 self-start">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] text-xs font-semibold tracking-[0.28em] text-[#f0d2b5]">
-              MB
-            </div>
-            <div>
-              <p className="font-display text-xl font-semibold text-white">My Baby</p>
-              <p className="text-[10px] uppercase tracking-[0.32em] text-[var(--muted-foreground)]">Maternal care platform</p>
-            </div>
+      <nav className="sticky top-0 z-40 border-b border-[var(--hairline)] bg-[rgba(17,24,39,0.85)] backdrop-blur-md">
+        <div className="page flex h-16 items-center justify-between gap-4">
+          <Brand tagline="Maternal & child health" />
+          <div className="hidden items-center gap-1 md:flex">
+            {[
+              { href: "#audiences", label: "Who it's for" },
+              { href: "#how", label: "How it works" },
+            ].map(link => (
+              <a key={link.href} href={link.href} className="rounded-md px-3 py-2 text-sm text-[var(--muted-foreground)] hover:text-white">
+                {link.label}
+              </a>
+            ))}
           </div>
-          <div className="flex w-full gap-2 sm:w-auto">
+          <div className="flex items-center gap-2">
             <Link href="/login">
-              <Button variant="ghost" size="sm" className="w-full sm:w-auto">Sign in</Button>
+              <Button variant="ghost" size="sm">Sign in</Button>
             </Link>
             <Link href="/signup?role=mother">
-              <Button size="sm" className="w-full bg-[var(--primary)] shadow-[0_18px_40px_rgba(199,143,98,0.24)] sm:w-auto">
-                Get started
-              </Button>
+              <Button size="sm">Get started</Button>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <main className="mx-auto grid w-full max-w-7xl gap-8 px-4 pb-16 pt-8 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-10 lg:pb-20 lg:pt-12">
-        <section className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.1)] px-4 py-2 text-sm font-medium text-[#f0d2b5]">
-            <Sparkles className="h-4 w-4" />
-            Continuous care from first kick to first steps.
-          </div>
+      <header className="page grid gap-14 pb-20 pt-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:pt-20">
+        <div className="motion-rise max-w-2xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--primary-line)] bg-[var(--primary-soft)] px-3 py-1 text-xs font-medium text-orange-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+            Continuous care from first kick to first steps
+          </span>
 
-          <h1 className="mt-6 font-display text-3xl font-semibold leading-[1.08] text-white sm:mt-8 sm:text-4xl xl:text-5xl">
-            Pregnancy and baby care, with doctor follow-up that is easier to act on.
+          <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-[56px]">
+            The care between <span className="text-[var(--primary)]">clinic visits.</span>
           </h1>
 
-          <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--muted-foreground)] sm:text-lg sm:leading-8">
-            Mothers check in from the right care path. Doctors see linked patients, fresh updates, and clear red, yellow, and green priorities.
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--muted-foreground)] sm:text-lg">
+            Mothers complete a 60-second daily check-in. Doctors see linked patients on a live triage board, with urgent cases surfaced first.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link href="/signup?role=mother">
-              <Button size="lg" className="bg-[var(--primary)] px-8 shadow-[0_18px_40px_rgba(199,143,98,0.24)]">
-                For patients
+              <Button size="lg" className="w-full sm:w-auto">
+                I&apos;m a mother <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/signup?role=doctor">
-              <Button size="lg" variant="outline" className="border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.03)] px-8 text-white">
-                For doctors
+              <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                <Stethoscope className="h-4 w-4" /> I&apos;m a clinician
               </Button>
             </Link>
           </div>
-        </section>
 
-        <section>
-          <div className="relative overflow-hidden rounded-[2rem] border border-[rgba(255,248,239,0.12)] bg-[#1e1914]">
-            <Image
-              src={MOTHER_IMAGE}
-              alt="African mother holding her baby indoors"
-              width={1200}
-              height={1600}
-              className="h-[280px] w-full object-cover object-[center_15%] sm:h-[420px]"
-            />
-            <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,transparent,rgba(14,10,8,0.9))] p-5">
-              <p className="text-[11px] uppercase tracking-[0.26em] text-[rgba(255,255,255,0.6)]">Mother experience</p>
-              <p className="mt-2 text-xl font-semibold text-white">Context-aware daily care</p>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      {/* Divider + About */}
-      <div className="border-t border-[rgba(255,248,239,0.06)]">
-        <div className="mx-auto max-w-2xl px-4 py-14 text-center sm:px-6">
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#f0d2b5]">About</p>
-          <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Linked care with invite codes</h2>
-          <p className="mt-5 text-sm leading-7 text-[var(--muted-foreground)]">
-            Continuous care from first kick to first steps. Doctors can stay linked to several mothers and babies through invite codes, so updates from different accounts still flow back to one dashboard.
-          </p>
+          <ul className="mt-8 grid gap-2.5 text-sm text-slate-300 sm:grid-cols-3">
+            {["60-second check-ins", "Real-time doctor alerts", "One-code doctor linking"].map(item => (
+              <li key={item} className="flex items-center gap-2">
+                <Check className="h-4 w-4 shrink-0 text-emerald-400" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
 
-      {/* Feature columns */}
-      <div className="border-t border-[rgba(255,248,239,0.06)] bg-[#241e19]">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-          <div className="grid gap-4 xl:grid-cols-2">
-            {featureColumns.map(column => {
-              const Icon = column.icon
-              return (
-                <div
-                  key={column.title}
-                  className="rounded-2xl border border-[rgba(255,248,239,0.1)] bg-[#2b251f] p-6"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.1)]">
-                      <Icon className="h-4 w-4 text-[#f0d2b5]" />
-                    </div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-[#f0d2b5]">{column.eyebrow}</p>
-                  </div>
-                  <h2 className="mt-4 text-xl font-semibold leading-tight text-white">{column.title}</h2>
-                  <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{column.body}</p>
+        <div className="motion-rise">
+          <ProductPreview />
+        </div>
+      </header>
+
+      {/* Capability strip */}
+      <section className="border-y border-[var(--hairline)] bg-[var(--surface-sunken)]">
+        <div className="page flex flex-wrap items-center justify-center gap-x-10 gap-y-4 py-6">
+          {capabilities.map(item => {
+            const Icon = item.icon
+            return (
+              <span key={item.label} className="flex items-center gap-2 text-sm text-slate-400">
+                <Icon className="h-4 w-4 text-slate-500" />
+                {item.label}
+              </span>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* Audiences */}
+      <section id="audiences" className="page scroll-mt-20 py-20">
+        <div className="max-w-2xl">
+          <p className="eyebrow text-[var(--primary)]">Two sides, one record</p>
+          <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Built for mothers and the clinicians who care for them</h2>
+        </div>
+
+        <div className="mt-10 grid gap-5 lg:grid-cols-2">
+          {audiences.map(audience => {
+            const Icon = audience.icon
+            return (
+              <div key={audience.title} className="surface flex flex-col p-6 sm:p-8">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <p className="eyebrow">{audience.eyebrow}</p>
                 </div>
-              )
-            })}
-          </div>
+                <h3 className="mt-5 text-xl font-semibold text-white">{audience.title}</h3>
+                <ul className="mt-5 space-y-3">
+                  {audience.points.map(point => (
+                    <li key={point} className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto pt-7">
+                  <Link href={audience.cta.href} className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--primary)] hover:text-orange-300">
+                    {audience.cta.label} <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            )
+          })}
         </div>
-      </div>
+      </section>
 
       {/* How it works */}
-      <div className="border-t border-[rgba(255,248,239,0.06)]">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <section id="how" className="scroll-mt-20 border-t border-[var(--hairline)]">
+        <div className="page py-20">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-xl">
-              <p className="text-xs uppercase tracking-[0.28em] text-[#f0d2b5]">How it works</p>
-              <h2 className="mt-3 text-2xl font-semibold leading-tight text-white">
-                The product flow should feel obvious before people even sign in.
-              </h2>
+              <p className="eyebrow text-[var(--primary)]">How it works</p>
+              <h2 className="mt-3 text-3xl font-semibold text-white">Up and running in minutes</h2>
             </div>
-            <p className="max-w-sm text-sm leading-6 text-[var(--muted-foreground)]">
-              A simple flow: choose the right path, check in, and keep the doctor side updated.
+            <p className="max-w-sm text-sm leading-relaxed text-[var(--muted-foreground)]">
+              No hardware, no complex setup. A referral code is all it takes to connect mother and doctor.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 lg:grid-cols-3">
-            {processSteps.map(step => (
-              <div
-                key={step.number}
-                className="rounded-2xl border border-[rgba(255,248,239,0.1)] bg-[#241e19] p-6"
-              >
-                <p className="text-xs font-semibold tracking-[0.18em] text-[#f0d2b5]">{step.number}</p>
-                <h3 className="mt-4 text-lg font-semibold text-white">{step.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{step.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Reassurance */}
-      <div className="border-t border-[rgba(255,248,239,0.06)] bg-[#241e19]">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-          <div className="grid gap-4 md:grid-cols-3">
-            {reassuranceItems.map(item => {
-              const Icon = item.icon
+          <ol className="mt-10 grid gap-5 md:grid-cols-3">
+            {steps.map((step, index) => {
+              const Icon = step.icon
               return (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-[rgba(255,248,239,0.1)] bg-[#2b251f] p-8"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(199,143,98,0.22)] bg-[rgba(199,143,98,0.1)]">
-                    <Icon className="h-5 w-5 text-[#f0d2b5]" />
+                <li key={step.title} className="surface p-6">
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.04] text-slate-200 ring-1 ring-[var(--hairline)]">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="num text-sm font-semibold text-slate-600">0{index + 1}</span>
                   </div>
-                  <h3 className="mt-8 text-xl font-semibold text-white">{item.title}</h3>
-                  <p className="mt-4 text-sm leading-7 text-[var(--muted-foreground)]">{item.body}</p>
-                </div>
+                  <h3 className="mt-5 text-base font-semibold text-white">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--muted-foreground)]">{step.body}</p>
+                </li>
               )
             })}
-          </div>
+          </ol>
         </div>
-      </div>
+      </section>
 
       {/* CTA */}
-      <div className="border-t border-[rgba(255,248,239,0.06)]">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-          <div className="rounded-2xl border border-[rgba(201,139,88,0.2)] bg-[linear-gradient(140deg,rgba(201,139,88,0.12),rgba(43,37,31,0.8))] p-8 sm:p-10">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl">
-                <p className="text-xs uppercase tracking-[0.28em] text-[#f0d2b5]">Start with the right role</p>
-                <h2 className="mt-3 text-3xl font-semibold leading-tight text-white sm:text-4xl">
-                  Join as a mother or doctor and enter the product from the correct side.
-                </h2>
-                <p className="mt-4 text-sm leading-7 text-[rgba(255,255,255,0.6)]">
-                  Start from the side that matches you and move into the right experience.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link href="/signup?role=mother">
-                  <Button size="lg" className="w-full bg-[var(--primary)] sm:w-auto">
-                    Create mother account
-                  </Button>
-                </Link>
-                <Link href="/signup?role=doctor">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.03)] text-white sm:w-auto"
-                  >
-                    Create doctor account <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
+      <section className="page pb-4">
+        <div className="relative overflow-hidden rounded-2xl border border-[var(--primary-line)] bg-gradient-to-br from-[rgba(249,115,22,0.14)] via-[var(--card)] to-[var(--card)] p-8 sm:p-12">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-xl">
+              <h2 className="text-2xl font-semibold text-white sm:text-3xl">Start your care path today</h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                Free to join. Choose your side and you&apos;ll land in the right experience.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link href="/signup?role=mother">
+                <Button size="lg" className="w-full sm:w-auto">Join as a mother</Button>
+              </Link>
+              <Link href="/signup?role=doctor">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                  Join as a clinician <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <MedicalFooter />
     </div>

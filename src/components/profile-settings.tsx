@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { CheckCircle2, LoaderCircle, User, Phone, Mail } from "lucide-react"
+import { LoaderCircle, User, Phone, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Notice } from "@/components/app/status"
 import { createClient } from "@/lib/supabase/client"
 
 interface Props {
@@ -22,6 +24,8 @@ export function ProfileSettings({ userId, initialFullName, initialPhone, email }
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+
+  const dirty = fullName !== initialFullName || phone !== initialPhone
 
   async function saveProfile() {
     if (!fullName.trim()) {
@@ -47,85 +51,54 @@ export function ProfileSettings({ userId, initialFullName, initialPhone, email }
       return
     }
 
-    setSuccess("Profile updated successfully.")
+    setSuccess("Profile updated.")
     setLoading(false)
     router.refresh()
   }
 
+  const iconCls = "pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+
   return (
-    <section className="rounded-[2rem] border border-[var(--border)] bg-[rgba(73,60,51,0.72)] p-6 backdrop-blur-md shadow-xl">
-      <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-        <User className="h-4 w-4" /> Personal Profile
-      </div>
-      
-      <div className="mt-6 space-y-5">
-        <div>
-          <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2">
-            Email Address (Read-only)
-          </label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-[var(--muted-foreground)]" />
-            <Input
-              id="email"
-              value={email}
-              readOnly
-              className="pl-10 bg-[rgba(255,248,239,0.02)] border-[var(--border)] text-[var(--muted-foreground)] cursor-not-allowed"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="fullName" className="block text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2">
-            Full Name
-          </label>
-          <div className="relative">
-            <User className="absolute left-3 top-3 h-4 w-4 text-[var(--muted-foreground)]" />
-            <Input
-              id="fullName"
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              placeholder="Your full name"
-              className="pl-10 bg-[rgba(255,248,239,0.05)] border-[var(--border)] text-white focus-visible:ring-[var(--primary)]/30"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="phone" className="block text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2">
-            Phone Number
-          </label>
-          <div className="relative">
-            <Phone className="absolute left-3 top-3 h-4 w-4 text-[var(--muted-foreground)]" />
-            <Input
-              id="phone"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="+1 234 567 8900"
-              className="pl-10 bg-[rgba(255,248,239,0.05)] border-[var(--border)] text-white focus-visible:ring-[var(--primary)]/30"
-            />
-          </div>
-        </div>
+    <section className="surface overflow-hidden">
+      <div className="border-b border-[var(--hairline)] px-5 py-4 sm:px-6">
+        <h2 className="text-base font-semibold text-white">Personal profile</h2>
+        <p className="mt-0.5 text-[13px] text-[var(--muted-foreground)]">Shown to your linked care team.</p>
       </div>
 
-      {error && (
-        <div className="mt-5 rounded-[1.25rem] border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          {error}
+      <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="email">Email</Label>
+          <div className="relative">
+            <Mail className={iconCls} />
+            <Input id="email" value={email} readOnly className="cursor-not-allowed pl-10" />
+          </div>
+          <p className="text-xs text-slate-500">Your sign-in email can&apos;t be changed here.</p>
         </div>
-      )}
 
-      {success && (
-        <div className="mt-5 rounded-[1.25rem] border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>{success}</span>
+        <div className="space-y-2">
+          <Label htmlFor="fullName">Full name</Label>
+          <div className="relative">
+            <User className={iconCls} />
+            <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" className="pl-10" />
           </div>
         </div>
-      )}
 
-      <div className="mt-6">
-        <Button onClick={saveProfile} disabled={loading} className="w-full sm:w-auto bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 px-8 rounded-full shadow-lg">
-          {loading ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {loading ? "Saving Profile..." : "Save Profile"}
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone number</Label>
+          <div className="relative">
+            <Phone className={iconCls} />
+            <Input id="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+234 800 000 0000" className="pl-10" />
+          </div>
+        </div>
+
+        {error ? <Notice tone="error" className="sm:col-span-2">{error}</Notice> : null}
+        {success ? <Notice tone="success" className="sm:col-span-2">{success}</Notice> : null}
+      </div>
+
+      <div className="flex justify-end border-t border-[var(--hairline)] bg-black/10 px-5 py-3 sm:px-6">
+        <Button onClick={saveProfile} disabled={loading || !dirty}>
+          {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+          {loading ? "Saving…" : "Save changes"}
         </Button>
       </div>
     </section>

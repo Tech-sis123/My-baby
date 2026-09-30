@@ -8,7 +8,9 @@ import { bootstrapAccount, resolvePostAuthDestination } from "@/lib/account"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { LoaderCircle } from "lucide-react"
+import { Notice } from "@/components/app/status"
+import { RoleSwitch } from "../role-switch"
 
 function getAuthErrorMessage(error: AuthError): string {
   const message = error.message.toLowerCase()
@@ -96,65 +98,65 @@ function LoginPageContent() {
   }
 
   return (
-    <Card className="border-[rgba(255,255,255,0.08)] bg-[rgba(19,20,23,0.86)] shadow-none backdrop-blur">
-      <CardHeader className="pb-4 text-center">
-        <div className="mx-auto mb-2 inline-flex items-center justify-center rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
-          {role === "doctor" ? "Doctor Portal" : "Mother Portal"}
-        </div>
-        <CardTitle className="text-3xl">Welcome back</CardTitle>
-        <CardDescription className="text-base">
-          {role === "doctor" ? "Doctor login" : "Mother login"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="text"
-              inputMode="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder="you@example.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          {error && (
-            <p className="rounded-xl bg-red-500/10 p-3 text-sm text-red-200">{error}</p>
-          )}
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
-          </Button>
-        </form>
-        <p className="text-center text-sm text-[var(--muted-foreground)] mt-4">
-          Don&apos;t have an account?{" "}
-          <Link href={`/signup?role=${role}${nextPath ? `&next=${encodeURIComponent(nextPath)}` : ""}`} className="text-[var(--primary)] font-semibold hover:underline">
-            Sign up
-          </Link>
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-white">Welcome back</h1>
+        <p className="mt-1.5 text-sm text-[var(--muted-foreground)]">
+          Sign in to your {role === "doctor" ? "clinician workspace" : "care dashboard"}.
         </p>
-      </CardContent>
-    </Card>
+      </div>
+
+      <RoleSwitch role={role} basePath="/login" nextPath={nextPath} />
+
+      <form onSubmit={handleLogin} className="mt-6 space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="text"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="you@example.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        {error && <Notice tone="error">{error}</Notice>}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+          {loading ? "Signing in…" : "Sign in"}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
+        Don&apos;t have an account?{" "}
+        <Link href={`/signup?role=${role}${nextPath ? `&next=${encodeURIComponent(nextPath)}` : ""}`} className="font-semibold text-[var(--primary)] hover:text-orange-300">
+          Create one
+        </Link>
+      </p>
+    </div>
   )
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<Card className="border-white/40 bg-white/90 p-8 text-center shadow-[0_30px_90px_rgba(17,24,39,0.12)] backdrop-blur">Loading…</Card>}>
+    <Suspense fallback={<p className="text-center text-sm text-[var(--muted-foreground)]">Loading…</p>}>
       <LoginPageContent />
     </Suspense>
   )
