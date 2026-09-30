@@ -68,13 +68,14 @@ export async function POST(req: Request) {
   let stream
   try {
     stream = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [
         { role: "system", content: systemPrompt },
         ...safeMessages,
       ],
       stream: true,
-      max_tokens: isDoctor ? 420 : 320,
+      reasoning_effort: "low",
+      max_completion_tokens: isDoctor ? 900 : 700,
       temperature: isDoctor ? 0.35 : 0.55,
     })
   } catch (error) {
