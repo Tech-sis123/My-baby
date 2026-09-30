@@ -94,8 +94,8 @@ export function AskAIClient({
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to get response")
+        const error = await response.json().catch(() => null)
+        throw new Error(error?.error || `Failed to get response (${response.status})`)
       }
 
       const reader = response.body?.getReader()

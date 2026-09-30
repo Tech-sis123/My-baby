@@ -2,7 +2,6 @@ import Groq from "groq-sdk"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 const MOTHER_SYSTEM_PROMPT = `You are a warm maternal and baby-care assistant inside the My Baby app. Give calm, practical, non-judgmental answers about pregnancy, breastfeeding, newborn care, infant routines, feeding, hydration, development, and what to monitor next.
 
@@ -28,6 +27,11 @@ Rules:
 - If the scenario sounds emergent, say so clearly and early.`
 
 export async function POST(req: Request) {
+  if (!process.env.GROQ_API_KEY) {
+    console.error("GROQ_API_KEY is not set")
+    return NextResponse.json({ error: "Assistant is not configured. Please try again later." }, { status: 500 })
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -38,7 +42,8 @@ export async function POST(req: Request) {
     .eq("id", user.id)
     .maybeSingle()
 
-  const { messages } = await req.json()
+  const body = await req.json().catch(() => null)
+  const messages = body?.messages
   if (!Array.isArray(messages)) return NextResponse.json({ error: "Invalid messages" }, { status: 400 })
 
   const safeMessages = messages
@@ -58,23 +63,35 @@ export async function POST(req: Request) {
   const systemPrompt = profile?.role === "doctor" ? DOCTOR_SYSTEM_PROMPT : MOTHER_SYSTEM_PROMPT
   const isDoctor = profile?.role === "doctor"
 
-  const stream = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages: [
-      { role: "system", content: systemPrompt },
-      ...safeMessages,
-    ],
-    stream: true,
-    max_tokens: isDoctor ? 420 : 320,
-    temperature: isDoctor ? 0.35 : 0.55,
-  })
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+
+  let stream
+  try {
+    stream = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...safeMessages,
+      ],
+      stream: true,
+      max_tokens: isDoctor ? 420 : 320,
+      temperature: isDoctor ? 0.35 : 0.55,
+    })
+  } catch (error) {
+    console.error("Groq request failed:", error)
+    return NextResponse.json({ error: "The assistant is unavailable right now. Please try again." }, { status: 502 })
+  }
 
   const encoder = new TextEncoder()
   const readable = new ReadableStream({
     async start(controller) {
-      for await (const chunk of stream) {
-        const text = chunk.choices[0]?.delta?.content || ""
-        if (text) controller.enqueue(encoder.encode(text))
+      try {
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content || ""
+          if (text) controller.enqueue(encoder.encode(text))
+        }
+      } catch (error) {
+        console.error("Groq stream failed:", error)
       }
       controller.close()
     },
